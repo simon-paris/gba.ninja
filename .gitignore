@@ -4,3 +4,7 @@ src/wx/cmd-evtable.h
 src/wx/cmdhandlers.h
 src/wx/cmdtab.cpp
 src/wx/wxvbam.xrs
+node_modules
+*.gba
+*.mem
+emu.js

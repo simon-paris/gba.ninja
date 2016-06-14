@@ -154,24 +154,24 @@ extern FilterFunc filterFunction;
 extern IFBFilterFunc ifbFunction;
 
 
-extern char* homeDir;
-extern const char* screenShotDir;
-extern const char* saveDir;
-extern const char* batteryDir;
+//extern char* homeDir;
+//extern const char* screenShotDir;
+//extern const char* saveDir;
+//extern const char* batteryDir;
 
 // Directory within homedir to use for default save location.
 #define DOT_DIR ".vbam"
 
-void SetHome(char *_arg0);
-void SaveConfigFile();
-void CloseConfig();
+//void SetHome(char *_arg0);
+//void SaveConfigFile();
+//void CloseConfig();
 u32 ReadPrefHex(const char* pref_key, int default_value);
 u32 ReadPrefHex(const char* pref_key);
 u32 ReadPref(const char* pref_key, int default_value);
 u32 ReadPref(const char* pref_key);
 const char* ReadPrefString(const char* pref_key, const char* default_value);
 const char* ReadPrefString(const char* pref_key);
-void LoadConfigFile(int argc, char ** argv);
+//void LoadConfigFile(int argc, char ** argv);
 void LoadConfig();
-int ReadOpts(int argc, char ** argv);
+//int ReadOpts(int argc, char ** argv);
 #endif

@@ -11,7 +11,7 @@
 #include <direct.h>
 #endif // _WIN32
 
-#include <zlib.h>
+//#include <zlib.h>
 
 #ifndef NO_PNG
 extern "C" {
@@ -28,10 +28,10 @@ extern "C" {
 #include "gba/RTC.h"
 #include "common/Port.h"
 
-#include "fex/fex.h"
+//#include "fex/fex.h"
 
 extern "C" {
-#include "common/memgzio.h"
+//#include "common/memgzio.h"
 }
 
 #include "gba/gbafilter.h"
@@ -49,20 +49,20 @@ extern int systemBlueShift;
 extern u16 systemColorMap16[0x10000];
 extern u32 systemColorMap32[0x10000];
 
-static int (ZEXPORT *utilGzWriteFunc)(gzFile, const voidp, unsigned int) = NULL;
-static int (ZEXPORT *utilGzReadFunc)(gzFile, voidp, unsigned int) = NULL;
-static int (ZEXPORT *utilGzCloseFunc)(gzFile) = NULL;
-static z_off_t (ZEXPORT *utilGzSeekFunc)(gzFile, z_off_t, int) = NULL;
+//static int (ZEXPORT *utilGzWriteFunc)(gzFile, const voidp, unsigned int) = NULL;
+//static int (ZEXPORT *utilGzReadFunc)(gzFile, voidp, unsigned int) = NULL;
+//static int (ZEXPORT *utilGzCloseFunc)(gzFile) = NULL;
+//static z_off_t (ZEXPORT *utilGzSeekFunc)(gzFile, z_off_t, int) = NULL;
 
-bool FileExists(const char *filename)
-{
-#ifdef _WIN32
-	return (_access(filename, 0) != -1);
-#else
-	struct stat buffer;
-	return (stat(filename, &buffer) == 0);
-#endif
-}
+//bool FileExists(const char *filename)
+//{
+//#ifdef _WIN32
+//	return (_access(filename, 0) != -1);
+//#else
+//	struct stat buffer;
+//	return (stat(filename, &buffer) == 0);
+//#endif
+//}
 
 void utilReadScreenPixels(u8* dest, int w, int h)
 {
@@ -126,137 +126,137 @@ void utilReadScreenPixels(u8* dest, int w, int h)
 	}
 }
 
-bool utilWritePNGFile(const char *fileName, int w, int h, u8 *pix)
-{
-#ifndef NO_PNG
-  u8 writeBuffer[512 * 3];
-
-  FILE *fp = fopen(fileName,"wb");
-
-  if(!fp) {
-    systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"), fileName);
-    return false;
-  }
-
-  png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
-                                                NULL,
-                                                NULL,
-                                                NULL);
-  if(!png_ptr) {
-    fclose(fp);
-    return false;
-  }
-
-  png_infop info_ptr = png_create_info_struct(png_ptr);
-
-  if(!info_ptr) {
-    png_destroy_write_struct(&png_ptr,NULL);
-    fclose(fp);
-    return false;
-  }
-
-  if(setjmp(png_jmpbuf(png_ptr))) {
-    png_destroy_write_struct(&png_ptr,NULL);
-    fclose(fp);
-    return false;
-  }
-
-  png_init_io(png_ptr,fp);
-
-  png_set_IHDR(png_ptr,
-               info_ptr,
-               w,
-               h,
-               8,
-               PNG_COLOR_TYPE_RGB,
-               PNG_INTERLACE_NONE,
-               PNG_COMPRESSION_TYPE_DEFAULT,
-               PNG_FILTER_TYPE_DEFAULT);
-
-  png_write_info(png_ptr,info_ptr);
-
-  u8 *b = writeBuffer;
-
-  int sizeX = w;
-  int sizeY = h;
-
-  switch(systemColorDepth) {
-  case 16:
-    {
-      u16 *p = (u16 *)(pix+(w+2)*2); // skip first black line
-      for(int y = 0; y < sizeY; y++) {
-         for(int x = 0; x < sizeX; x++) {
-          u16 v = *p++;
-
-          *b++ = ((v >> systemRedShift) & 0x001f) << 3; // R
-          *b++ = ((v >> systemGreenShift) & 0x001f) << 3; // G
-          *b++ = ((v >> systemBlueShift) & 0x01f) << 3; // B
-        }
-        p++; // skip black pixel for filters
-        p++; // skip black pixel for filters
-        png_write_row(png_ptr,writeBuffer);
-
-        b = writeBuffer;
-      }
-    }
-    break;
-  case 24:
-    {
-      u8 *pixU8 = (u8 *)pix;
-      for(int y = 0; y < sizeY; y++) {
-        for(int x = 0; x < sizeX; x++) {
-          if(systemRedShift < systemBlueShift) {
-            *b++ = *pixU8++; // R
-            *b++ = *pixU8++; // G
-            *b++ = *pixU8++; // B
-          } else {
-            int blue = *pixU8++;
-            int green = *pixU8++;
-            int red = *pixU8++;
-
-            *b++ = red;
-            *b++ = green;
-            *b++ = blue;
-          }
-        }
-        png_write_row(png_ptr,writeBuffer);
-
-        b = writeBuffer;
-      }
-    }
-    break;
-  case 32:
-    {
-      u32 *pixU32 = (u32 *)(pix+4*(w+1));
-      for(int y = 0; y < sizeY; y++) {
-        for(int x = 0; x < sizeX; x++) {
-          u32 v = *pixU32++;
-
-          *b++ = ((v >> systemRedShift) & 0x001f) << 3; // R
-          *b++ = ((v >> systemGreenShift) & 0x001f) << 3; // G
-          *b++ = ((v >> systemBlueShift) & 0x001f) << 3; // B
-        }
-        pixU32++;
-
-        png_write_row(png_ptr,writeBuffer);
-
-        b = writeBuffer;
-      }
-    }
-    break;
-  }
-
-  png_write_end(png_ptr, info_ptr);
-
-  png_destroy_write_struct(&png_ptr, &info_ptr);
-
-  fclose(fp);
-
-  return true;
-#else
-  return false;
-#endif
-}
+//bool utilWritePNGFile(const char *fileName, int w, int h, u8 *pix)
+//{
+//#ifndef NO_PNG
+//  u8 writeBuffer[512 * 3];
+//
+//  FILE *fp = fopen(fileName,"wb");
+//
+//  if(!fp) {
+//    systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"), fileName);
+//    return false;
+//  }
+//
+//  png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
+//                                                NULL,
+//                                                NULL,
+//                                                NULL);
+//  if(!png_ptr) {
+//    fclose(fp);
+//    return false;
+//  }
+//
+//  png_infop info_ptr = png_create_info_struct(png_ptr);
+//
+//  if(!info_ptr) {
+//    png_destroy_write_struct(&png_ptr,NULL);
+//    fclose(fp);
+//    return false;
+//  }
+//
+//  if(setjmp(png_jmpbuf(png_ptr))) {
+//    png_destroy_write_struct(&png_ptr,NULL);
+//    fclose(fp);
+//    return false;
+//  }
+//
+//  png_init_io(png_ptr,fp);
+//
+//  png_set_IHDR(png_ptr,
+//               info_ptr,
+//               w,
+//               h,
+//               8,
+//               PNG_COLOR_TYPE_RGB,
+//               PNG_INTERLACE_NONE,
+//               PNG_COMPRESSION_TYPE_DEFAULT,
+//               PNG_FILTER_TYPE_DEFAULT);
+//
+//  png_write_info(png_ptr,info_ptr);
+//
+//  u8 *b = writeBuffer;
+//
+//  int sizeX = w;
+//  int sizeY = h;
+//
+//  switch(systemColorDepth) {
+//  case 16:
+//    {
+//      u16 *p = (u16 *)(pix+(w+2)*2); // skip first black line
+//      for(int y = 0; y < sizeY; y++) {
+//         for(int x = 0; x < sizeX; x++) {
+//          u16 v = *p++;
+//
+//          *b++ = ((v >> systemRedShift) & 0x001f) << 3; // R
+//          *b++ = ((v >> systemGreenShift) & 0x001f) << 3; // G
+//          *b++ = ((v >> systemBlueShift) & 0x01f) << 3; // B
+//        }
+//        p++; // skip black pixel for filters
+//        p++; // skip black pixel for filters
+//        png_write_row(png_ptr,writeBuffer);
+//
+//        b = writeBuffer;
+//      }
+//    }
+//    break;
+//  case 24:
+//    {
+//      u8 *pixU8 = (u8 *)pix;
+//      for(int y = 0; y < sizeY; y++) {
+//        for(int x = 0; x < sizeX; x++) {
+//          if(systemRedShift < systemBlueShift) {
+//            *b++ = *pixU8++; // R
+//            *b++ = *pixU8++; // G
+//            *b++ = *pixU8++; // B
+//          } else {
+//            int blue = *pixU8++;
+//            int green = *pixU8++;
+//            int red = *pixU8++;
+//
+//            *b++ = red;
+//            *b++ = green;
+//            *b++ = blue;
+//          }
+//        }
+//        png_write_row(png_ptr,writeBuffer);
+//
+//        b = writeBuffer;
+//      }
+//    }
+//    break;
+//  case 32:
+//    {
+//      u32 *pixU32 = (u32 *)(pix+4*(w+1));
+//      for(int y = 0; y < sizeY; y++) {
+//        for(int x = 0; x < sizeX; x++) {
+//          u32 v = *pixU32++;
+//
+//          *b++ = ((v >> systemRedShift) & 0x001f) << 3; // R
+//          *b++ = ((v >> systemGreenShift) & 0x001f) << 3; // G
+//          *b++ = ((v >> systemBlueShift) & 0x001f) << 3; // B
+//        }
+//        pixU32++;
+//
+//        png_write_row(png_ptr,writeBuffer);
+//
+//        b = writeBuffer;
+//      }
+//    }
+//    break;
+//  }
+//
+//  png_write_end(png_ptr, info_ptr);
+//
+//  png_destroy_write_struct(&png_ptr, &info_ptr);
+//
+//  fclose(fp);
+//
+//  return true;
+//#else
+//  return false;
+//#endif
+//}
 
 void utilPutDword(u8 *p, u32 value)
 {
@@ -272,130 +272,130 @@ void utilPutWord(u8 *p, u16 value)
   *p = (value >> 8) & 255;
 }
 
-bool utilWriteBMPFile(const char *fileName, int w, int h, u8 *pix)
-{
-  u8 writeBuffer[512 * 3];
-
-  FILE *fp = fopen(fileName,"wb");
-
-  if(!fp) {
-    systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"), fileName);
-    return false;
-  }
-
-  struct {
-    u8 ident[2];
-    u8 filesize[4];
-    u8 reserved[4];
-    u8 dataoffset[4];
-    u8 headersize[4];
-    u8 width[4];
-    u8 height[4];
-    u8 planes[2];
-    u8 bitsperpixel[2];
-    u8 compression[4];
-    u8 datasize[4];
-    u8 hres[4];
-    u8 vres[4];
-    u8 colors[4];
-    u8 importantcolors[4];
-    //    u8 pad[2];
-  } bmpheader;
-  memset(&bmpheader, 0, sizeof(bmpheader));
-
-  bmpheader.ident[0] = 'B';
-  bmpheader.ident[1] = 'M';
-
-  u32 fsz = sizeof(bmpheader) + w*h*3;
-  utilPutDword(bmpheader.filesize, fsz);
-  utilPutDword(bmpheader.dataoffset, 0x36);
-  utilPutDword(bmpheader.headersize, 0x28);
-  utilPutDword(bmpheader.width, w);
-  utilPutDword(bmpheader.height, h);
-  utilPutDword(bmpheader.planes, 1);
-  utilPutDword(bmpheader.bitsperpixel, 24);
-  utilPutDword(bmpheader.datasize, 3*w*h);
-
-  fwrite(&bmpheader, 1, sizeof(bmpheader), fp);
-
-  u8 *b = writeBuffer;
-
-  int sizeX = w;
-  int sizeY = h;
-
-  switch(systemColorDepth) {
-  case 16:
-    {
-      u16 *p = (u16 *)(pix+(w+2)*(h)*2); // skip first black line
-      for(int y = 0; y < sizeY; y++) {
-        for(int x = 0; x < sizeX; x++) {
-          u16 v = *p++;
-
-          *b++ = ((v >> systemBlueShift) & 0x01f) << 3; // B
-          *b++ = ((v >> systemGreenShift) & 0x001f) << 3; // G
-          *b++ = ((v >> systemRedShift) & 0x001f) << 3; // R
-        }
-        p++; // skip black pixel for filters
-        p++; // skip black pixel for filters
-        p -= 2*(w+2);
-        fwrite(writeBuffer, 1, 3*w, fp);
-
-        b = writeBuffer;
-      }
-    }
-    break;
-  case 24:
-    {
-      u8 *pixU8 = (u8 *)pix+3*w*(h-1);
-      for(int y = 0; y < sizeY; y++) {
-        for(int x = 0; x < sizeX; x++) {
-          if(systemRedShift > systemBlueShift) {
-            *b++ = *pixU8++; // B
-            *b++ = *pixU8++; // G
-            *b++ = *pixU8++; // R
-          } else {
-            int red = *pixU8++;
-            int green = *pixU8++;
-            int blue = *pixU8++;
-
-            *b++ = blue;
-            *b++ = green;
-            *b++ = red;
-          }
-        }
-        pixU8 -= 2*3*w;
-        fwrite(writeBuffer, 1, 3*w, fp);
-
-        b = writeBuffer;
-      }
-    }
-    break;
-  case 32:
-    {
-      u32 *pixU32 = (u32 *)(pix+4*(w+1)*(h));
-      for(int y = 0; y < sizeY; y++) {
-        for(int x = 0; x < sizeX; x++) {
-          u32 v = *pixU32++;
-
-          *b++ = ((v >> systemBlueShift) & 0x001f) << 3; // B
-          *b++ = ((v >> systemGreenShift) & 0x001f) << 3; // G
-          *b++ = ((v >> systemRedShift) & 0x001f) << 3; // R
-        }
-        pixU32++;
-        pixU32 -= 2*(w+1);
-
-        fwrite(writeBuffer, 1, 3*w, fp);
-
-        b = writeBuffer;
-      }
-    }
-    break;
-  }
-
-  fclose(fp);
-
-  return true;
-}
+//bool utilWriteBMPFile(const char *fileName, int w, int h, u8 *pix)
+//{
+//  u8 writeBuffer[512 * 3];
+//
+//  FILE *fp = fopen(fileName,"wb");
+//
+//  if(!fp) {
+//    systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"), fileName);
+//    return false;
+//  }
+//
+//  struct {
+//    u8 ident[2];
+//    u8 filesize[4];
+//    u8 reserved[4];
+//    u8 dataoffset[4];
+//    u8 headersize[4];
+//    u8 width[4];
+//    u8 height[4];
+//    u8 planes[2];
+//    u8 bitsperpixel[2];
+//    u8 compression[4];
+//    u8 datasize[4];
+//    u8 hres[4];
+//    u8 vres[4];
+//    u8 colors[4];
+//    u8 importantcolors[4];
+//    //    u8 pad[2];
+//  } bmpheader;
+//  memset(&bmpheader, 0, sizeof(bmpheader));
+//
+//  bmpheader.ident[0] = 'B';
+//  bmpheader.ident[1] = 'M';
+//
+//  u32 fsz = sizeof(bmpheader) + w*h*3;
+//  utilPutDword(bmpheader.filesize, fsz);
+//  utilPutDword(bmpheader.dataoffset, 0x36);
+//  utilPutDword(bmpheader.headersize, 0x28);
+//  utilPutDword(bmpheader.width, w);
+//  utilPutDword(bmpheader.height, h);
+//  utilPutDword(bmpheader.planes, 1);
+//  utilPutDword(bmpheader.bitsperpixel, 24);
+//  utilPutDword(bmpheader.datasize, 3*w*h);
+//
+//  fwrite(&bmpheader, 1, sizeof(bmpheader), fp);
+//
+//  u8 *b = writeBuffer;
+//
+//  int sizeX = w;
+//  int sizeY = h;
+//
+//  switch(systemColorDepth) {
+//  case 16:
+//    {
+//      u16 *p = (u16 *)(pix+(w+2)*(h)*2); // skip first black line
+//      for(int y = 0; y < sizeY; y++) {
+//        for(int x = 0; x < sizeX; x++) {
+//          u16 v = *p++;
+//
+//          *b++ = ((v >> systemBlueShift) & 0x01f) << 3; // B
+//          *b++ = ((v >> systemGreenShift) & 0x001f) << 3; // G
+//          *b++ = ((v >> systemRedShift) & 0x001f) << 3; // R
+//        }
+//        p++; // skip black pixel for filters
+//        p++; // skip black pixel for filters
+//        p -= 2*(w+2);
+//        fwrite(writeBuffer, 1, 3*w, fp);
+//
+//        b = writeBuffer;
+//      }
+//    }
+//    break;
+//  case 24:
+//    {
+//      u8 *pixU8 = (u8 *)pix+3*w*(h-1);
+//      for(int y = 0; y < sizeY; y++) {
+//        for(int x = 0; x < sizeX; x++) {
+//          if(systemRedShift > systemBlueShift) {
+//            *b++ = *pixU8++; // B
+//            *b++ = *pixU8++; // G
+//            *b++ = *pixU8++; // R
+//          } else {
+//            int red = *pixU8++;
+//            int green = *pixU8++;
+//            int blue = *pixU8++;
+//
+//            *b++ = blue;
+//            *b++ = green;
+//            *b++ = red;
+//          }
+//        }
+//        pixU8 -= 2*3*w;
+//        fwrite(writeBuffer, 1, 3*w, fp);
+//
+//        b = writeBuffer;
+//      }
+//    }
+//    break;
+//  case 32:
+//    {
+//      u32 *pixU32 = (u32 *)(pix+4*(w+1)*(h));
+//      for(int y = 0; y < sizeY; y++) {
+//        for(int x = 0; x < sizeX; x++) {
+//          u32 v = *pixU32++;
+//
+//          *b++ = ((v >> systemBlueShift) & 0x001f) << 3; // B
+//          *b++ = ((v >> systemGreenShift) & 0x001f) << 3; // G
+//          *b++ = ((v >> systemRedShift) & 0x001f) << 3; // R
+//        }
+//        pixU32++;
+//        pixU32 -= 2*(w+1);
+//
+//        fwrite(writeBuffer, 1, 3*w, fp);
+//
+//        b = writeBuffer;
+//      }
+//    }
+//    break;
+//  }
+//
+//  fclose(fp);
+//
+//  return true;
+//}
 
 extern bool cpuIsMultiBoot;
 
@@ -471,97 +471,97 @@ void utilStripDoubleExtension(const char *file, char *buffer)
 
 // Opens and scans archive using accept(). Returns fex_t if found.
 // If error or not found, displays message and returns NULL.
-static fex_t* scan_arc(const char *file, bool (*accept)(const char *),
-		char (&buffer) [2048] )
-{
-	fex_t* fe;
-	fex_err_t err = fex_open( &fe, file );
-	if(!fe)
-	{
-		systemMessage(MSG_CANNOT_OPEN_FILE, N_("Cannot open file %s: %s"), file, err);
-		return NULL;
-	}
-
-	// Scan filenames
-	bool found=false;
-	while(!fex_done(fe)) {
-		strncpy(buffer,fex_name(fe),sizeof buffer);
-		buffer [sizeof buffer-1] = '\0';
-
-		utilStripDoubleExtension(buffer, buffer);
-
-		if(accept(buffer)) {
-			found = true;
-			break;
-		}
-
-		fex_err_t err = fex_next(fe);
-		if(err) {
-			systemMessage(MSG_BAD_ZIP_FILE, N_("Cannot read archive %s: %s"), file, err);
-			fex_close(fe);
-			return NULL;
-		}
-	}
-
-	if(!found) {
-		systemMessage(MSG_NO_IMAGE_ON_ZIP,
-									N_("No image found in file %s"), file);
-		fex_close(fe);
-		return NULL;
-	}
-	return fe;
-}
-
-static bool utilIsImage(const char *file)
-{
-	return utilIsGBAImage(file) || utilIsGBImage(file);
-}
-
-#ifdef WIN32
-#include <windows.h>
-#endif
-
-IMAGE_TYPE utilFindType(const char *file, char (&buffer)[2048]);
-
-IMAGE_TYPE utilFindType(const char *file)
-{
-	char buffer [2048];
-	return utilFindType(file, buffer);
-}
-
-IMAGE_TYPE utilFindType(const char *file, char (&buffer)[2048])
-{
-#ifdef WIN32
-	DWORD dwNum = MultiByteToWideChar (CP_ACP, 0, file, -1, NULL, 0);
-	wchar_t *pwText;
-	pwText = new wchar_t[dwNum];
-	if(!pwText)
-	{
-		return IMAGE_UNKNOWN;
-	}
-	MultiByteToWideChar (CP_ACP, 0, file, -1, pwText, dwNum );
-	char* file_conv = fex_wide_to_path( pwText);
-//	if ( !utilIsImage( file_conv ) ) // TODO: utilIsArchive() instead?
+//static fex_t* scan_arc(const char *file, bool (*accept)(const char *),
+//		char (&buffer) [2048] )
+//{
+//	fex_t* fe;
+//	fex_err_t err = fex_open( &fe, file );
+//	if(!fe)
 //	{
-		fex_t* fe = scan_arc(file_conv,utilIsImage,buffer);
-		if(!fe)
-			return IMAGE_UNKNOWN;
-		fex_close(fe);
-		file = buffer;
+//		systemMessage(MSG_CANNOT_OPEN_FILE, N_("Cannot open file %s: %s"), file, err);
+//		return NULL;
 //	}
-	free(file_conv);
-#else
-//	if ( !utilIsImage( file ) ) // TODO: utilIsArchive() instead?
+//
+//	// Scan filenames
+//	bool found=false;
+//	while(!fex_done(fe)) {
+//		strncpy(buffer,fex_name(fe),sizeof buffer);
+//		buffer [sizeof buffer-1] = '\0';
+//
+//		utilStripDoubleExtension(buffer, buffer);
+//
+//		if(accept(buffer)) {
+//			found = true;
+//			break;
+//		}
+//
+//		fex_err_t err = fex_next(fe);
+//		if(err) {
+//			systemMessage(MSG_BAD_ZIP_FILE, N_("Cannot read archive %s: %s"), file, err);
+//			fex_close(fe);
+//			return NULL;
+//		}
+//	}
+//
+//	if(!found) {
+//		systemMessage(MSG_NO_IMAGE_ON_ZIP,
+//									N_("No image found in file %s"), file);
+//		fex_close(fe);
+//		return NULL;
+//	}
+//	return fe;
+//}
+//
+//static bool utilIsImage(const char *file)
+//{
+//	return utilIsGBAImage(file) || utilIsGBImage(file);
+//}
+
+//#ifdef WIN32
+//#include <windows.h>
+//#endif
+//
+//IMAGE_TYPE utilFindType(const char *file, char (&buffer)[2048]);
+//
+//IMAGE_TYPE utilFindType(const char *file)
+//{
+//	char buffer [2048];
+//	return utilFindType(file, buffer);
+//}
+//
+//IMAGE_TYPE utilFindType(const char *file, char (&buffer)[2048])
+//{
+//#ifdef WIN32
+//	DWORD dwNum = MultiByteToWideChar (CP_ACP, 0, file, -1, NULL, 0);
+//	wchar_t *pwText;
+//	pwText = new wchar_t[dwNum];
+//	if(!pwText)
 //	{
-		fex_t* fe = scan_arc(file,utilIsImage,buffer);
-		if(!fe)
-			return IMAGE_UNKNOWN;
-		fex_close(fe);
-		file = buffer;
+//		return IMAGE_UNKNOWN;
 //	}
-#endif
-	return utilIsGBAImage(file) ? IMAGE_GBA : IMAGE_GB;
-}
+//	MultiByteToWideChar (CP_ACP, 0, file, -1, pwText, dwNum );
+//	char* file_conv = fex_wide_to_path( pwText);
+////	if ( !utilIsImage( file_conv ) ) // TODO: utilIsArchive() instead?
+////	{
+//		fex_t* fe = scan_arc(file_conv,utilIsImage,buffer);
+//		if(!fe)
+//			return IMAGE_UNKNOWN;
+//		fex_close(fe);
+//		file = buffer;
+////	}
+//	free(file_conv);
+//#else
+////	if ( !utilIsImage( file ) ) // TODO: utilIsArchive() instead?
+////	{
+//		fex_t* fe = scan_arc(file,utilIsImage,buffer);
+//		if(!fe)
+//			return IMAGE_UNKNOWN;
+//		fex_close(fe);
+//		file = buffer;
+////	}
+//#endif
+//	return utilIsGBAImage(file) ? IMAGE_GBA : IMAGE_GB;
+//}
 
 static int utilGetSize(int size)
 {
@@ -571,69 +571,69 @@ static int utilGetSize(int size)
   return res;
 }
 
-u8 *utilLoad(const char *file,
-             bool (*accept)(const char *),
-             u8 *data,
-             int &size)
-{
-	// find image file
-	char buffer [2048];
-#ifdef WIN32
-	DWORD dwNum = MultiByteToWideChar (CP_ACP, 0, file, -1, NULL, 0);
-	wchar_t *pwText;
-	pwText = new wchar_t[dwNum];
-	if(!pwText)
-	{
-		return NULL;
-	}
-	MultiByteToWideChar (CP_ACP, 0, file, -1, pwText, dwNum );
-	char* file_conv = fex_wide_to_path( pwText);
-	delete []pwText;
-	fex_t *fe = scan_arc(file_conv,accept,buffer);
-	if(!fe)
-		return NULL;
-	free(file_conv);
-#else
-	fex_t *fe = scan_arc(file,accept,buffer);
-	if(!fe)
-		return NULL;
-#endif
-	// Allocate space for image
-	fex_err_t err = fex_stat(fe);
-	int fileSize = fex_size(fe);
-	if(size == 0)
-		size = fileSize;
-
-	u8 *image = data;
-
-	if(image == NULL) {
-		// allocate buffer memory if none was passed to the function
-		image = (u8 *)malloc(utilGetSize(size));
-		if(image == NULL) {
-			fex_close(fe);
-			systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
-										"data");
-			return NULL;
-		}
-		size = fileSize;
-	}
-
-	// Read image
-	int read = fileSize <= size ? fileSize : size; // do not read beyond file
-	err = fex_read(fe, image, read);
-	fex_close(fe);
-	if(err) {
-		systemMessage(MSG_ERROR_READING_IMAGE,
-									N_("Error reading image from %s: %s"), buffer, err);
-		if(data == NULL)
-			free(image);
-		return NULL;
-	}
-
-	size = fileSize;
-
-	return image;
-}
+//u8 *utilLoad(const char *file,
+//             bool (*accept)(const char *),
+//             u8 *data,
+//             int &size)
+//{
+//	// find image file
+//	char buffer [2048];
+//#ifdef WIN32
+//	DWORD dwNum = MultiByteToWideChar (CP_ACP, 0, file, -1, NULL, 0);
+//	wchar_t *pwText;
+//	pwText = new wchar_t[dwNum];
+//	if(!pwText)
+//	{
+//		return NULL;
+//	}
+//	MultiByteToWideChar (CP_ACP, 0, file, -1, pwText, dwNum );
+//	char* file_conv = fex_wide_to_path( pwText);
+//	delete []pwText;
+//	fex_t *fe = scan_arc(file_conv,accept,buffer);
+//	if(!fe)
+//		return NULL;
+//	free(file_conv);
+//#else
+//	fex_t *fe = scan_arc(file,accept,buffer);
+//	if(!fe)
+//		return NULL;
+//#endif
+//	// Allocate space for image
+//	fex_err_t err = fex_stat(fe);
+//	int fileSize = fex_size(fe);
+//	if(size == 0)
+//		size = fileSize;
+//
+//	u8 *image = data;
+//
+//	if(image == NULL) {
+//		// allocate buffer memory if none was passed to the function
+//		image = (u8 *)malloc(utilGetSize(size));
+//		if(image == NULL) {
+//			fex_close(fe);
+//			systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
+//										"data");
+//			return NULL;
+//		}
+//		size = fileSize;
+//	}
+//
+//	// Read image
+//	int read = fileSize <= size ? fileSize : size; // do not read beyond file
+//	err = fex_read(fe, image, read);
+//	fex_close(fe);
+//	if(err) {
+//		systemMessage(MSG_ERROR_READING_IMAGE,
+//									N_("Error reading image from %s: %s"), buffer, err);
+//		if(data == NULL)
+//			free(image);
+//		return NULL;
+//	}
+//
+//	size = fileSize;
+//
+//	return image;
+//}
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to) {
 	if (from.empty())
@@ -645,137 +645,137 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
 	}
 }
 
-void utilExtract(const char* filepath, const char* filename)
-{
-	fex_t* fex;
-	std::string archive_name(filepath);
-	archive_name.append(filename);
-
-	fex_open(&fex, archive_name.c_str());
-	while (!fex_done(fex))
-	{
-		std::string extracted_filename(filepath);
-		extracted_filename.append(fex_name(fex));
-#ifdef WIN32
-		replaceAll(extracted_filename, "/", "\\");
-#endif
-
-		std::string new_dir(filepath);
-		new_dir.append(fex_name(fex));
-#ifdef WIN32
-		replaceAll(new_dir, "/", "\\");
-#endif
-		new_dir = new_dir.substr(0, new_dir.find_last_of("\\"));
-		if (!FileExists(new_dir.c_str()))
-			mkdir(new_dir.c_str()
-#ifndef WIN32
-			,0777
-#endif
-			);
-
-		if (FileExists(extracted_filename.c_str()))
-		{
-			std::string new_name(filepath);
-			new_name.append("old-");
-			new_name.append(fex_name(fex));
-#ifdef WIN32
-			replaceAll(new_name, "/", "\\");
-#endif
-			remove(new_name.c_str());
-			rename(extracted_filename.c_str(), new_name.c_str());
-		}
-
-		FILE *extracted_file = fopen(extracted_filename.c_str(), "wb");
-		const void* p;
-		fex_data(fex, &p);
-		fwrite(p, fex_size(fex), 1, extracted_file);
-		fclose(extracted_file);
-		fex_next(fex);
-	}
-	fex_close(fex);
-
-}
-
-void utilWriteInt(gzFile gzFile, int i)
-{
-  utilGzWrite(gzFile, &i, sizeof(int));
-}
-
-int utilReadInt(gzFile gzFile)
-{
-  int i = 0;
-  utilGzRead(gzFile, &i, sizeof(int));
-  return i;
-}
-
-void utilReadData(gzFile gzFile, variable_desc* data)
-{
-  while(data->address) {
-    utilGzRead(gzFile, data->address, data->size);
-    data++;
-  }
-}
-
-void utilReadDataSkip(gzFile gzFile, variable_desc* data)
-{
-  while(data->address) {
-    utilGzSeek(gzFile, data->size, SEEK_CUR);
-    data++;
-  }
-}
-
-void utilWriteData(gzFile gzFile, variable_desc *data)
-{
-  while(data->address) {
-    utilGzWrite(gzFile, data->address, data->size);
-    data++;
-  }
-}
-
-gzFile utilGzOpen(const char *file, const char *mode)
-{
-  utilGzWriteFunc = (int (ZEXPORT *)(gzFile, void * const, unsigned int))gzwrite;
-  utilGzReadFunc = gzread;
-  utilGzCloseFunc = gzclose;
-  utilGzSeekFunc = gzseek;
-
-  return gzopen(file, mode);
-}
-
-gzFile utilMemGzOpen(char *memory, int available, const char *mode)
-{
-  utilGzWriteFunc = memgzwrite;
-  utilGzReadFunc = memgzread;
-  utilGzCloseFunc = memgzclose;
-  utilGzSeekFunc = memgzseek;
-
-  return memgzopen(memory, available, mode);
-}
-
-int utilGzWrite(gzFile file, const voidp buffer, unsigned int len)
-{
-  return utilGzWriteFunc(file, buffer, len);
-}
-
-int utilGzRead(gzFile file, voidp buffer, unsigned int len)
-{
-  return utilGzReadFunc(file, buffer, len);
-}
-
-int utilGzClose(gzFile file)
-{
-  return utilGzCloseFunc(file);
-}
-
-z_off_t utilGzSeek(gzFile file, z_off_t offset, int whence)
-{
-	return utilGzSeekFunc(file, offset, whence);
-}
-
-long utilGzMemTell(gzFile file)
-{
-  return memtell(file);
-}
+//void utilExtract(const char* filepath, const char* filename)
+//{
+//	fex_t* fex;
+//	std::string archive_name(filepath);
+//	archive_name.append(filename);
+//
+//	fex_open(&fex, archive_name.c_str());
+//	while (!fex_done(fex))
+//	{
+//		std::string extracted_filename(filepath);
+//		extracted_filename.append(fex_name(fex));
+//#ifdef WIN32
+//		replaceAll(extracted_filename, "/", "\\");
+//#endif
+//
+//		std::string new_dir(filepath);
+//		new_dir.append(fex_name(fex));
+//#ifdef WIN32
+//		replaceAll(new_dir, "/", "\\");
+//#endif
+//		new_dir = new_dir.substr(0, new_dir.find_last_of("\\"));
+//		if (!FileExists(new_dir.c_str()))
+//			mkdir(new_dir.c_str()
+//#ifndef WIN32
+//			,0777
+//#endif
+//			);
+//
+//		if (FileExists(extracted_filename.c_str()))
+//		{
+//			std::string new_name(filepath);
+//			new_name.append("old-");
+//			new_name.append(fex_name(fex));
+//#ifdef WIN32
+//			replaceAll(new_name, "/", "\\");
+//#endif
+//			remove(new_name.c_str());
+//			rename(extracted_filename.c_str(), new_name.c_str());
+//		}
+//
+//		FILE *extracted_file = fopen(extracted_filename.c_str(), "wb");
+//		const void* p;
+//		fex_data(fex, &p);
+//		fwrite(p, fex_size(fex), 1, extracted_file);
+//		fclose(extracted_file);
+//		fex_next(fex);
+//	}
+//	fex_close(fex);
+//
+//}
+//
+//void utilWriteInt(gzFile gzFile, int i)
+//{
+//  utilGzWrite(gzFile, &i, sizeof(int));
+//}
+//
+//int utilReadInt(gzFile gzFile)
+//{
+//  int i = 0;
+//  utilGzRead(gzFile, &i, sizeof(int));
+//  return i;
+//}
+//
+//void utilReadData(gzFile gzFile, variable_desc* data)
+//{
+//  while(data->address) {
+//    utilGzRead(gzFile, data->address, data->size);
+//    data++;
+//  }
+//}
+//
+//void utilReadDataSkip(gzFile gzFile, variable_desc* data)
+//{
+//  while(data->address) {
+//    utilGzSeek(gzFile, data->size, SEEK_CUR);
+//    data++;
+//  }
+//}
+//
+//void utilWriteData(gzFile gzFile, variable_desc *data)
+//{
+//  while(data->address) {
+//    utilGzWrite(gzFile, data->address, data->size);
+//    data++;
+//  }
+//}
+//
+//gzFile utilGzOpen(const char *file, const char *mode)
+//{
+//  utilGzWriteFunc = (int (ZEXPORT *)(gzFile, void * const, unsigned int))gzwrite;
+//  utilGzReadFunc = gzread;
+//  utilGzCloseFunc = gzclose;
+//  utilGzSeekFunc = gzseek;
+//
+//  return gzopen(file, mode);
+//}
+//
+//gzFile utilMemGzOpen(char *memory, int available, const char *mode)
+//{
+//  utilGzWriteFunc = memgzwrite;
+//  utilGzReadFunc = memgzread;
+//  utilGzCloseFunc = memgzclose;
+//  utilGzSeekFunc = memgzseek;
+//
+//  return memgzopen(memory, available, mode);
+//}
+//
+//int utilGzWrite(gzFile file, const voidp buffer, unsigned int len)
+//{
+//  return utilGzWriteFunc(file, buffer, len);
+//}
+//
+//int utilGzRead(gzFile file, voidp buffer, unsigned int len)
+//{
+//  return utilGzReadFunc(file, buffer, len);
+//}
+//
+//int utilGzClose(gzFile file)
+//{
+//  return utilGzCloseFunc(file);
+//}
+//
+//z_off_t utilGzSeek(gzFile file, z_off_t offset, int whence)
+//{
+//	return utilGzSeekFunc(file, offset, whence);
+//}
+//
+//long utilGzMemTell(gzFile file)
+//{
+//  return memtell(file);
+//}
 
 void utilGBAFindSave(const int size)
 {
@@ -844,7 +844,7 @@ void utilUpdateSystemColorMaps(bool lcd)
           (((i & 0x3e0) >> 5) << systemGreenShift) |
           (((i & 0x7c00) >> 10) << systemBlueShift);
       }
-      if (lcd) gbafilter_pal(systemColorMap16, 0x10000);
+      //if (lcd) gbafilter_pal(systemColorMap16, 0x10000);
     }
     break;
   case 24:
@@ -855,20 +855,20 @@ void utilUpdateSystemColorMaps(bool lcd)
           (((i & 0x3e0) >> 5) << systemGreenShift) |
           (((i & 0x7c00) >> 10) << systemBlueShift);
       }
-      if (lcd) gbafilter_pal32(systemColorMap32, 0x10000);
+      //if (lcd) gbafilter_pal32(systemColorMap32, 0x10000);
     }
     break;
   }
 }
 
-// Check for existence of file.
-bool utilFileExists( const char *filename )
-{
-	FILE *f = fopen( filename, "r" );
-	if( f == NULL ) {
-		return false;
-	} else {
-		fclose( f );
-		return true;
-	}
-}
+//// Check for existence of file.
+//bool utilFileExists( const char *filename )
+//{
+//	FILE *f = fopen( filename, "r" );
+//	if( f == NULL ) {
+//		return false;
+//	} else {
+//		fclose( f );
+//		return true;
+//	}
+//}

@@ -133,11 +133,11 @@ static inline u32 CPUReadMemory(u32 address)
   case 15:
     if(cpuFlashEnabled | cpuSramEnabled)
     {  // no need to swap this
-	  #ifdef __libretro__
+//	  #ifdef __libretro__
       return flashRead(address);
-	  #else
-	  value = flashRead(address) * 0x01010101;
-	  #endif
+//	  #else
+//	  value = flashRead(address) * 0x01010101;
+//	  #endif
 	}
 	break;
     // default

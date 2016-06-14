@@ -17,20 +17,20 @@
 #define UPDATE_REG(address, value) WRITE16LE(((u16 *)&ioMem[address]),value)
 
 static int vbaid = 0;
-const char *MakeInstanceFilename(const char *Input)
-{
-	if (vbaid == 0)
-		return Input;
-
-	static char *result = NULL;
-	if (result != NULL)
-		free(result);
-
-	result = (char *)malloc(strlen(Input) + 3);
-	char *p = strrchr((char *)Input, '.');
-	sprintf(result, "%.*s-%d.%s", (int)(p - Input), Input, vbaid + 1, p + 1);
-	return result;
-}
+//const char *MakeInstanceFilename(const char *Input)
+//{
+//	if (vbaid == 0)
+//		return Input;
+//
+//	static char *result = NULL;
+//	if (result != NULL)
+//		free(result);
+//
+//	result = (char *)malloc(strlen(Input) + 3);
+//	char *p = strrchr((char *)Input, '.');
+//	sprintf(result, "%.*s-%d.%s", (int)(p - Input), Input, vbaid + 1, p + 1);
+//	return result;
+//}
 
 #ifndef NO_LINK
 

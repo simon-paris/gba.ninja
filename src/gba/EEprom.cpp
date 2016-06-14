@@ -11,13 +11,13 @@ int eepromByte = 0;
 int eepromBits = 0;
 int eepromAddress = 0;
 
-#ifdef __LIBRETRO__
-// Workaround for broken-by-design GBA save semantics
-extern u8 libretro_save_buf[0x20000 + 0x2000];
-u8 *eepromData = libretro_save_buf + 0x20000;
-#else
+//#ifdef __LIBRETRO__
+//// Workaround for broken-by-design GBA save semantics
+//extern u8 libretro_save_buf[0x20000 + 0x2000];
+//u8 *eepromData = libretro_save_buf + 0x20000;
+//#else
 u8 eepromData[0x2000];
-#endif
+//#endif
 
 u8 eepromBuffer[16];
 bool eepromInUse = false;
@@ -36,11 +36,11 @@ variable_desc eepromSaveData[] = {
 
 void eepromInit()
 {
-#ifdef __LIBRETRO__
-	memset(eepromData, 255, 0x2000);
-#else
+//#ifdef __LIBRETRO__
+//	memset(eepromData, 255, 0x2000);
+//#else
 	memset(eepromData, 255, sizeof(eepromData));
-#endif
+//#endif
 }
 
 void eepromReset()
@@ -53,7 +53,7 @@ void eepromReset()
   eepromSize = 512;
 }
 
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
 void eepromSaveGame(uint8_t *& data)
 {
    utilWriteDataMem(data, eepromSaveData);
@@ -72,36 +72,36 @@ void eepromReadGame(const uint8_t *& data, int version)
       eepromSize = 512;
    }
 }
-#else
-void eepromSaveGame(gzFile gzFile)
-{
-  utilWriteData(gzFile, eepromSaveData);
-  utilWriteInt(gzFile, eepromSize);
-  utilGzWrite(gzFile, eepromData, 0x2000);
-}
-
-void eepromReadGame(gzFile gzFile, int version)
-{
-  utilReadData(gzFile, eepromSaveData);
-  if(version >= SAVE_GAME_VERSION_3) {
-    eepromSize = utilReadInt(gzFile);
-    utilGzRead(gzFile, eepromData, 0x2000);
-  } else {
-    // prior to 0.7.1, only 4K EEPROM was supported
-    eepromSize = 512;
-  }
-}
-
-void eepromReadGameSkip(gzFile gzFile, int version)
-{
-  // skip the eeprom data in a save game
-  utilReadDataSkip(gzFile, eepromSaveData);
-  if(version >= SAVE_GAME_VERSION_3) {
-    utilGzSeek(gzFile, sizeof(int), SEEK_CUR);
-    utilGzSeek(gzFile, 0x2000, SEEK_CUR);
-  }
-}
-#endif
+//#else
+//void eepromSaveGame(gzFile gzFile)
+//{
+//  utilWriteData(gzFile, eepromSaveData);
+//  utilWriteInt(gzFile, eepromSize);
+//  utilGzWrite(gzFile, eepromData, 0x2000);
+//}
+//
+//void eepromReadGame(gzFile gzFile, int version)
+//{
+//  utilReadData(gzFile, eepromSaveData);
+//  if(version >= SAVE_GAME_VERSION_3) {
+//    eepromSize = utilReadInt(gzFile);
+//    utilGzRead(gzFile, eepromData, 0x2000);
+//  } else {
+//    // prior to 0.7.1, only 4K EEPROM was supported
+//    eepromSize = 512;
+//  }
+//}
+//
+//void eepromReadGameSkip(gzFile gzFile, int version)
+//{
+//  // skip the eeprom data in a save game
+//  utilReadDataSkip(gzFile, eepromSaveData);
+//  if(version >= SAVE_GAME_VERSION_3) {
+//    utilGzSeek(gzFile, sizeof(int), SEEK_CUR);
+//    utilGzSeek(gzFile, 0x2000, SEEK_CUR);
+//  }
+//}
+//#endif
 
 int eepromRead(u32 /* address */)
 {

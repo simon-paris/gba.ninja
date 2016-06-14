@@ -36,6 +36,8 @@
 #define _stricmp strcasecmp
 #endif
 
+#import <emscripten.h>
+
 extern int emulating;
 bool debugger;
 
@@ -584,7 +586,7 @@ void CPUUpdateRenderBuffers(bool force)
   }
 }
 
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
 #include <cstddef>
 
 unsigned int CPUWriteState(u8* data, unsigned size)
@@ -606,11 +608,11 @@ unsigned int CPUWriteState(u8* data, unsigned size)
    utilWriteMem(data, workRAM, 0x40000);
    utilWriteMem(data, vram, 0x20000);
    utilWriteMem(data, oam, 0x400);
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
    utilWriteMem(data, pix, 4 * 240 * 160);
-#else
-   utilWriteMem(data, pix, 4 * 241 * 162);
-#endif
+//#else
+//   utilWriteMem(data, pix, 4 * 241 * 162);
+//#endif
    utilWriteMem(data, ioMem, 0x400);
 
    eepromSaveGame(data);
@@ -625,88 +627,88 @@ bool CPUWriteMemState(char *memory, int available, long& reserved)
 {
    return false;
 }
-#else
-static bool CPUWriteState(gzFile gzFile)
-{
-  utilWriteInt(gzFile, SAVE_GAME_VERSION);
+//#else
+//static bool CPUWriteState(gzFile gzFile)
+//{
+//  utilWriteInt(gzFile, SAVE_GAME_VERSION);
+//
+//  utilGzWrite(gzFile, &rom[0xa0], 16);
+//
+//  utilWriteInt(gzFile, useBios);
+//
+//  utilGzWrite(gzFile, &reg[0], sizeof(reg));
+//
+//  utilWriteData(gzFile, saveGameStruct);
+//
+//  // new to version 0.7.1
+//  utilWriteInt(gzFile, stopState);
+//  // new to version 0.8
+//  utilWriteInt(gzFile, IRQTicks);
+//
+//  utilGzWrite(gzFile, internalRAM, 0x8000);
+//  utilGzWrite(gzFile, paletteRAM, 0x400);
+//  utilGzWrite(gzFile, workRAM, 0x40000);
+//  utilGzWrite(gzFile, vram, 0x20000);
+//  utilGzWrite(gzFile, oam, 0x400);
+//#ifdef __LIBRETRO__
+//  utilGzWrite(gzFile, pix, 4*240*160);
+//#else
+//  utilGzWrite(gzFile, pix, 4*241*162);
+//#endif
+//  utilGzWrite(gzFile, ioMem, 0x400);
+//
+//  eepromSaveGame(gzFile);
+//  flashSaveGame(gzFile);
+//  soundSaveGame(gzFile);
+//
+//  cheatsSaveGame(gzFile);
+//
+//  // version 1.5
+//  rtcSaveGame(gzFile);
+//
+//  return true;
+//}
+//
+//bool CPUWriteState(const char *file)
+//{
+//  gzFile gzFile = utilGzOpen(file, "wb");
+//
+//  if(gzFile == NULL) {
+//    systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"), file);
+//    return false;
+//  }
+//
+//  bool res = CPUWriteState(gzFile);
+//
+//  utilGzClose(gzFile);
+//
+//  return res;
+//}
+//
+//
+//bool CPUWriteMemState(char *memory, int available, long& reserved)
+//{
+//  gzFile gzFile = utilMemGzOpen(memory, available, "w");
+//
+//  if(gzFile == NULL) {
+//    return false;
+//  }
+//
+//  bool res = CPUWriteState(gzFile);
+//
+//  reserved = utilGzMemTell(gzFile)+8;
+//
+//  if(reserved >= (available))
+//    res = false;
+//
+//  utilGzClose(gzFile);
+//
+//  return res;
+//}
+//#endif
 
-  utilGzWrite(gzFile, &rom[0xa0], 16);
 
-  utilWriteInt(gzFile, useBios);
-
-  utilGzWrite(gzFile, &reg[0], sizeof(reg));
-
-  utilWriteData(gzFile, saveGameStruct);
-
-  // new to version 0.7.1
-  utilWriteInt(gzFile, stopState);
-  // new to version 0.8
-  utilWriteInt(gzFile, IRQTicks);
-
-  utilGzWrite(gzFile, internalRAM, 0x8000);
-  utilGzWrite(gzFile, paletteRAM, 0x400);
-  utilGzWrite(gzFile, workRAM, 0x40000);
-  utilGzWrite(gzFile, vram, 0x20000);
-  utilGzWrite(gzFile, oam, 0x400);
-#ifdef __LIBRETRO__
-  utilGzWrite(gzFile, pix, 4*240*160);
-#else
-  utilGzWrite(gzFile, pix, 4*241*162);
-#endif
-  utilGzWrite(gzFile, ioMem, 0x400);
-
-  eepromSaveGame(gzFile);
-  flashSaveGame(gzFile);
-  soundSaveGame(gzFile);
-
-  cheatsSaveGame(gzFile);
-
-  // version 1.5
-  rtcSaveGame(gzFile);
-
-  return true;
-}
-
-bool CPUWriteState(const char *file)
-{
-  gzFile gzFile = utilGzOpen(file, "wb");
-
-  if(gzFile == NULL) {
-    systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"), file);
-    return false;
-  }
-
-  bool res = CPUWriteState(gzFile);
-
-  utilGzClose(gzFile);
-
-  return res;
-}
-
-
-bool CPUWriteMemState(char *memory, int available, long& reserved)
-{
-  gzFile gzFile = utilMemGzOpen(memory, available, "w");
-
-  if(gzFile == NULL) {
-    return false;
-  }
-
-  bool res = CPUWriteState(gzFile);
-
-  reserved = utilGzMemTell(gzFile)+8;
-
-  if(reserved >= (available))
-    res = false;
-
-  utilGzClose(gzFile);
-
-  return res;
-}
-#endif
-
-
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
 bool CPUReadState(const u8* data, unsigned size)
 {
    // Don't really care about version.
@@ -742,11 +744,11 @@ bool CPUReadState(const u8* data, unsigned size)
    utilReadMem(workRAM, data, 0x40000);
    utilReadMem(vram, data, 0x20000);
    utilReadMem(oam, data, 0x400);
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
    utilReadMem(pix, data, 4*240*160);
-#else
-   utilReadMem(pix, data, 4*241*162);
-#endif
+//#else
+//   utilReadMem(pix, data, 4*241*162);
+//#endif
    utilReadMem(ioMem, data, 0x400);
 
    eepromReadGame(data, version);
@@ -808,212 +810,212 @@ bool CPUReadState(const u8* data, unsigned size)
 
    return true;
 }
-#else
-static bool CPUReadState(gzFile gzFile)
-{
-  int version = utilReadInt(gzFile);
+//#else
+//static bool CPUReadState(gzFile gzFile)
+//{
+//  int version = utilReadInt(gzFile);
+//
+//  if(version > SAVE_GAME_VERSION || version < SAVE_GAME_VERSION_1) {
+//    systemMessage(MSG_UNSUPPORTED_VBA_SGM,
+//                  N_("Unsupported VisualBoyAdvance save game version %d"),
+//                  version);
+//    return false;
+//  }
+//
+//  u8 romname[17];
+//
+//  utilGzRead(gzFile, romname, 16);
+//
+//  if(memcmp(&rom[0xa0], romname, 16) != 0) {
+//    romname[16]=0;
+//    for(int i = 0; i < 16; i++)
+//      if(romname[i] < 32)
+//        romname[i] = 32;
+//    systemMessage(MSG_CANNOT_LOAD_SGM, N_("Cannot load save game for %s"), romname);
+//    return false;
+//  }
+//
+//  bool ub = utilReadInt(gzFile) ? true : false;
+//
+//  if(ub != useBios) {
+//    if(useBios)
+//      systemMessage(MSG_SAVE_GAME_NOT_USING_BIOS,
+//                    N_("Save game is not using the BIOS files"));
+//    else
+//      systemMessage(MSG_SAVE_GAME_USING_BIOS,
+//                    N_("Save game is using the BIOS file"));
+//    return false;
+//  }
+//
+//  utilGzRead(gzFile, &reg[0], sizeof(reg));
+//
+//  utilReadData(gzFile, saveGameStruct);
+//
+//  if(version < SAVE_GAME_VERSION_3)
+//    stopState = false;
+//  else
+//    stopState = utilReadInt(gzFile) ? true : false;
+//
+//  if(version < SAVE_GAME_VERSION_4)
+//  {
+//    IRQTicks = 0;
+//    intState = false;
+//  }
+//  else
+//  {
+//    IRQTicks = utilReadInt(gzFile);
+//    if (IRQTicks>0)
+//      intState = true;
+//    else
+//    {
+//      intState = false;
+//      IRQTicks = 0;
+//    }
+//  }
+//
+//  utilGzRead(gzFile, internalRAM, 0x8000);
+//  utilGzRead(gzFile, paletteRAM, 0x400);
+//  utilGzRead(gzFile, workRAM, 0x40000);
+//  utilGzRead(gzFile, vram, 0x20000);
+//  utilGzRead(gzFile, oam, 0x400);
+//#ifdef __LIBRETRO__
+//    utilGzRead(gzFile, pix, 4*240*160);
+//#else
+//  if(version < SAVE_GAME_VERSION_6)
+//    utilGzRead(gzFile, pix, 4*240*160);
+//  else
+//    utilGzRead(gzFile, pix, 4*241*162);
+//#endif
+//  utilGzRead(gzFile, ioMem, 0x400);
+//
+//  if(skipSaveGameBattery) {
+//    // skip eeprom data
+//    eepromReadGameSkip(gzFile, version);
+//    // skip flash data
+//    flashReadGameSkip(gzFile, version);
+//  } else {
+//    eepromReadGame(gzFile, version);
+//    flashReadGame(gzFile, version);
+//  }
+//  soundReadGame(gzFile, version);
+//
+//  if(version > SAVE_GAME_VERSION_1) {
+//    if(skipSaveGameCheats) {
+//      // skip cheats list data
+//      cheatsReadGameSkip(gzFile, version);
+//    } else {
+//      cheatsReadGame(gzFile, version);
+//    }
+//  }
+//  if(version > SAVE_GAME_VERSION_6) {
+//    rtcReadGame(gzFile);
+//  }
+//
+//  if(version <= SAVE_GAME_VERSION_7) {
+//    u32 temp;
+//#define SWAP(a,b,c) \
+//    temp = (a);\
+//    (a) = (b)<<16|(c);\
+//    (b) = (temp) >> 16;\
+//    (c) = (temp) & 0xFFFF;
+//
+//    SWAP(dma0Source, DM0SAD_H, DM0SAD_L);
+//    SWAP(dma0Dest,   DM0DAD_H, DM0DAD_L);
+//    SWAP(dma1Source, DM1SAD_H, DM1SAD_L);
+//    SWAP(dma1Dest,   DM1DAD_H, DM1DAD_L);
+//    SWAP(dma2Source, DM2SAD_H, DM2SAD_L);
+//    SWAP(dma2Dest,   DM2DAD_H, DM2DAD_L);
+//    SWAP(dma3Source, DM3SAD_H, DM3SAD_L);
+//    SWAP(dma3Dest,   DM3DAD_H, DM3DAD_L);
+//  }
+//
+//  if(version <= SAVE_GAME_VERSION_8) {
+//    timer0ClockReload = TIMER_TICKS[TM0CNT & 3];
+//    timer1ClockReload = TIMER_TICKS[TM1CNT & 3];
+//    timer2ClockReload = TIMER_TICKS[TM2CNT & 3];
+//    timer3ClockReload = TIMER_TICKS[TM3CNT & 3];
+//
+//    timer0Ticks = ((0x10000 - TM0D) << timer0ClockReload) - timer0Ticks;
+//    timer1Ticks = ((0x10000 - TM1D) << timer1ClockReload) - timer1Ticks;
+//    timer2Ticks = ((0x10000 - TM2D) << timer2ClockReload) - timer2Ticks;
+//    timer3Ticks = ((0x10000 - TM3D) << timer3ClockReload) - timer3Ticks;
+//    interp_rate();
+//  }
+//
+//  // set pointers!
+//  layerEnable = layerSettings & DISPCNT;
+//
+//  CPUUpdateRender();
+//  CPUUpdateRenderBuffers(true);
+//  CPUUpdateWindow0();
+//  CPUUpdateWindow1();
+//  gbaSaveType = 0;
+//  SetSaveType(saveType);
+//  if(eepromInUse)
+//    gbaSaveType = 3;
+//
+//  systemSaveUpdateCounter = SYSTEM_SAVE_NOT_UPDATED;
+//  if(armState) {
+//    ARM_PREFETCH;
+//  } else {
+//    THUMB_PREFETCH;
+//  }
+//
+//  CPUUpdateRegister(0x204, CPUReadHalfWordQuick(0x4000204));
+//
+//  return true;
+//}
+//
+//bool CPUReadMemState(char *memory, int available)
+//{
+//  gzFile gzFile = utilMemGzOpen(memory, available, "r");
+//
+//  bool res = CPUReadState(gzFile);
+//
+//  utilGzClose(gzFile);
+//
+//  return res;
+//}
+//
+//bool CPUReadState(const char * file)
+//{
+//  gzFile gzFile = utilGzOpen(file, "rb");
+//
+//  if(gzFile == NULL)
+//    return false;
+//
+//  bool res = CPUReadState(gzFile);
+//
+//  utilGzClose(gzFile);
+//
+//  return res;
+//}
+//#endif
 
-  if(version > SAVE_GAME_VERSION || version < SAVE_GAME_VERSION_1) {
-    systemMessage(MSG_UNSUPPORTED_VBA_SGM,
-                  N_("Unsupported VisualBoyAdvance save game version %d"),
-                  version);
-    return false;
-  }
-
-  u8 romname[17];
-
-  utilGzRead(gzFile, romname, 16);
-
-  if(memcmp(&rom[0xa0], romname, 16) != 0) {
-    romname[16]=0;
-    for(int i = 0; i < 16; i++)
-      if(romname[i] < 32)
-        romname[i] = 32;
-    systemMessage(MSG_CANNOT_LOAD_SGM, N_("Cannot load save game for %s"), romname);
-    return false;
-  }
-
-  bool ub = utilReadInt(gzFile) ? true : false;
-
-  if(ub != useBios) {
-    if(useBios)
-      systemMessage(MSG_SAVE_GAME_NOT_USING_BIOS,
-                    N_("Save game is not using the BIOS files"));
-    else
-      systemMessage(MSG_SAVE_GAME_USING_BIOS,
-                    N_("Save game is using the BIOS file"));
-    return false;
-  }
-
-  utilGzRead(gzFile, &reg[0], sizeof(reg));
-
-  utilReadData(gzFile, saveGameStruct);
-
-  if(version < SAVE_GAME_VERSION_3)
-    stopState = false;
-  else
-    stopState = utilReadInt(gzFile) ? true : false;
-
-  if(version < SAVE_GAME_VERSION_4)
-  {
-    IRQTicks = 0;
-    intState = false;
-  }
-  else
-  {
-    IRQTicks = utilReadInt(gzFile);
-    if (IRQTicks>0)
-      intState = true;
-    else
-    {
-      intState = false;
-      IRQTicks = 0;
-    }
-  }
-
-  utilGzRead(gzFile, internalRAM, 0x8000);
-  utilGzRead(gzFile, paletteRAM, 0x400);
-  utilGzRead(gzFile, workRAM, 0x40000);
-  utilGzRead(gzFile, vram, 0x20000);
-  utilGzRead(gzFile, oam, 0x400);
-#ifdef __LIBRETRO__
-    utilGzRead(gzFile, pix, 4*240*160);
-#else
-  if(version < SAVE_GAME_VERSION_6)
-    utilGzRead(gzFile, pix, 4*240*160);
-  else
-    utilGzRead(gzFile, pix, 4*241*162);
-#endif
-  utilGzRead(gzFile, ioMem, 0x400);
-
-  if(skipSaveGameBattery) {
-    // skip eeprom data
-    eepromReadGameSkip(gzFile, version);
-    // skip flash data
-    flashReadGameSkip(gzFile, version);
-  } else {
-    eepromReadGame(gzFile, version);
-    flashReadGame(gzFile, version);
-  }
-  soundReadGame(gzFile, version);
-
-  if(version > SAVE_GAME_VERSION_1) {
-    if(skipSaveGameCheats) {
-      // skip cheats list data
-      cheatsReadGameSkip(gzFile, version);
-    } else {
-      cheatsReadGame(gzFile, version);
-    }
-  }
-  if(version > SAVE_GAME_VERSION_6) {
-    rtcReadGame(gzFile);
-  }
-
-  if(version <= SAVE_GAME_VERSION_7) {
-    u32 temp;
-#define SWAP(a,b,c) \
-    temp = (a);\
-    (a) = (b)<<16|(c);\
-    (b) = (temp) >> 16;\
-    (c) = (temp) & 0xFFFF;
-
-    SWAP(dma0Source, DM0SAD_H, DM0SAD_L);
-    SWAP(dma0Dest,   DM0DAD_H, DM0DAD_L);
-    SWAP(dma1Source, DM1SAD_H, DM1SAD_L);
-    SWAP(dma1Dest,   DM1DAD_H, DM1DAD_L);
-    SWAP(dma2Source, DM2SAD_H, DM2SAD_L);
-    SWAP(dma2Dest,   DM2DAD_H, DM2DAD_L);
-    SWAP(dma3Source, DM3SAD_H, DM3SAD_L);
-    SWAP(dma3Dest,   DM3DAD_H, DM3DAD_L);
-  }
-
-  if(version <= SAVE_GAME_VERSION_8) {
-    timer0ClockReload = TIMER_TICKS[TM0CNT & 3];
-    timer1ClockReload = TIMER_TICKS[TM1CNT & 3];
-    timer2ClockReload = TIMER_TICKS[TM2CNT & 3];
-    timer3ClockReload = TIMER_TICKS[TM3CNT & 3];
-
-    timer0Ticks = ((0x10000 - TM0D) << timer0ClockReload) - timer0Ticks;
-    timer1Ticks = ((0x10000 - TM1D) << timer1ClockReload) - timer1Ticks;
-    timer2Ticks = ((0x10000 - TM2D) << timer2ClockReload) - timer2Ticks;
-    timer3Ticks = ((0x10000 - TM3D) << timer3ClockReload) - timer3Ticks;
-    interp_rate();
-  }
-
-  // set pointers!
-  layerEnable = layerSettings & DISPCNT;
-
-  CPUUpdateRender();
-  CPUUpdateRenderBuffers(true);
-  CPUUpdateWindow0();
-  CPUUpdateWindow1();
-  gbaSaveType = 0;
-  SetSaveType(saveType);
-  if(eepromInUse)
-    gbaSaveType = 3;
-
-  systemSaveUpdateCounter = SYSTEM_SAVE_NOT_UPDATED;
-  if(armState) {
-    ARM_PREFETCH;
-  } else {
-    THUMB_PREFETCH;
-  }
-
-  CPUUpdateRegister(0x204, CPUReadHalfWordQuick(0x4000204));
-
-  return true;
-}
-
-bool CPUReadMemState(char *memory, int available)
-{
-  gzFile gzFile = utilMemGzOpen(memory, available, "r");
-
-  bool res = CPUReadState(gzFile);
-
-  utilGzClose(gzFile);
-
-  return res;
-}
-
-bool CPUReadState(const char * file)
-{
-  gzFile gzFile = utilGzOpen(file, "rb");
-
-  if(gzFile == NULL)
-    return false;
-
-  bool res = CPUReadState(gzFile);
-
-  utilGzClose(gzFile);
-
-  return res;
-}
-#endif
-
-bool CPUExportEepromFile(const char *fileName)
-{
-  if(eepromInUse) {
-    FILE *file = fopen(fileName, "wb");
-
-    if(!file) {
-      systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"),
-                    fileName);
-      return false;
-    }
-
-    for(int i = 0; i < eepromSize;) {
-      for(int j = 0; j < 8; j++) {
-        if(fwrite(&eepromData[i+7-j], 1, 1, file) != 1) {
-          fclose(file);
-          return false;
-        }
-      }
-      i += 8;
-    }
-    fclose(file);
-  }
-  return true;
-}
+//bool CPUExportEepromFile(const char *fileName)
+//{
+//  if(eepromInUse) {
+//    FILE *file = fopen(fileName, "wb");
+//
+//    if(!file) {
+//      systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"),
+//                    fileName);
+//      return false;
+//    }
+//
+//    for(int i = 0; i < eepromSize;) {
+//      for(int j = 0; j < 8; j++) {
+//        if(fwrite(&eepromData[i+7-j], 1, 1, file) != 1) {
+//          fclose(file);
+//          return false;
+//        }
+//      }
+//      i += 8;
+//    }
+//    fclose(file);
+//  }
+//  return true;
+//}
 
 bool CPUWriteBatteryFile(const char *fileName)
 {
@@ -1031,392 +1033,401 @@ bool CPUWriteBatteryFile(const char *fileName)
   }
 
   if((gbaSaveType) && (gbaSaveType!=5)) {
-    FILE *file = fopen(fileName, "wb");
-
-    if(!file) {
-      systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"),
-                    fileName);
-      return false;
-    }
+//    FILE *file = fopen(fileName, "wb");
+//
+//    if(!file) {
+//      systemMessage(MSG_ERROR_CREATING_FILE, N_("Error creating file %s"),
+//                    fileName);
+//      return false;
+//    }
 
     // only save if Flash/Sram in use or EEprom in use
     if(gbaSaveType != 3) {
       if(gbaSaveType == 2) {
-        if(fwrite(flashSaveMemory, 1, flashSize, file) != (size_t)flashSize) {
-          fclose(file);
-          return false;
-        }
+//        if(fwrite(flashSaveMemory, 1, flashSize, file) != (size_t)flashSize) {
+//          fclose(file);
+//          return false;
+//        }
+        EM_ASM_INT({return window["VBAInterface"]["commitFlash"]($0, $1)}, (int) flashSaveMemory, (int) flashSize);
       } else {
-        if(fwrite(flashSaveMemory, 1, 0x8000, file) != 0x8000) {
-          fclose(file);
-          return false;
-        }
+//        if(fwrite(flashSaveMemory, 1, 0x8000, file) != 0x8000) {
+//          fclose(file);
+//          return false;
+//        }
+        EM_ASM_INT({return window["VBAInterface"]["commitFlash"]($0, $1)}, (int) flashSaveMemory, 0x8000);
       }
     } else {
-      if(fwrite(eepromData, 1, eepromSize, file) != (size_t)eepromSize) {
-        fclose(file);
-        return false;
-      }
+//      if(fwrite(eepromData, 1, eepromSize, file) != (size_t)eepromSize) {
+//        fclose(file);
+//        return false;
+//      }
+        EM_ASM_INT({return window["VBAInterface"]["commitEeprom"]($0, $1)}, (int) eepromData, (int) eepromSize);
     }
-    fclose(file);
+//    fclose(file);
   }
   return true;
 }
 
-bool CPUReadGSASnapshot(const char *fileName)
-{
-  int i;
-  FILE *file = fopen(fileName, "rb");
-
-  if(!file) {
-    systemMessage(MSG_CANNOT_OPEN_FILE, N_("Cannot open file %s"), fileName);
-    return false;
-  }
-
-  // check file size to know what we should read
-  fseek(file, 0, SEEK_END);
-
-  // long size = ftell(file);
-  fseek(file, 0x0, SEEK_SET);
-  fread(&i, 1, 4, file);
-  fseek(file, i, SEEK_CUR); // Skip SharkPortSave
-  fseek(file, 4, SEEK_CUR); // skip some sort of flag
-  fread(&i, 1, 4, file); // name length
-  fseek(file, i, SEEK_CUR); // skip name
-  fread(&i, 1, 4, file); // desc length
-  fseek(file, i, SEEK_CUR); // skip desc
-  fread(&i, 1, 4, file); // notes length
-  fseek(file, i, SEEK_CUR); // skip notes
-  int saveSize;
-  fread(&saveSize, 1, 4, file); // read length
-  saveSize -= 0x1c; // remove header size
-  char buffer[17];
-  char buffer2[17];
-  fread(buffer, 1, 16, file);
-  buffer[16] = 0;
-  for(i = 0; i < 16; i++)
-    if(buffer[i] < 32)
-      buffer[i] = 32;
-  memcpy(buffer2, &rom[0xa0], 16);
-  buffer2[16] = 0;
-  for(i = 0; i < 16; i++)
-    if(buffer2[i] < 32)
-      buffer2[i] = 32;
-  if(memcmp(buffer, buffer2, 16)) {
-    systemMessage(MSG_CANNOT_IMPORT_SNAPSHOT_FOR,
-                  N_("Cannot import snapshot for %s. Current game is %s"),
-                  buffer,
-                  buffer2);
-    fclose(file);
-    return false;
-  }
-  fseek(file, 12, SEEK_CUR); // skip some flags
-  if(saveSize >= 65536) {
-    if(fread(flashSaveMemory, 1, saveSize, file) != (size_t)saveSize) {
-      fclose(file);
-      return false;
-    }
-  } else {
-    systemMessage(MSG_UNSUPPORTED_SNAPSHOT_FILE,
-                  N_("Unsupported snapshot file %s"),
-                  fileName);
-    fclose(file);
-    return false;
-  }
-  fclose(file);
-  CPUReset();
-  return true;
-}
-
-bool CPUReadGSASPSnapshot(const char *fileName)
-{
-  const char gsvfooter[] = "xV4\x12";
-  const size_t namepos=0x0c, namesz=12;
-  const size_t footerpos=0x42c, footersz=4;
-
-  char footer[footersz+1], romname[namesz+1], savename[namesz+1];;
-  FILE *file = fopen(fileName, "rb");
-
-  if(!file) {
-    systemMessage(MSG_CANNOT_OPEN_FILE, N_("Cannot open file %s"), fileName);
-    return false;
-  }
-
-  // read save name
-  fseek(file, namepos, SEEK_SET);
-  fread(savename, 1, namesz, file);
-  savename[namesz] = 0;
-
-  memcpy(romname, &rom[0xa0], namesz);
-  romname[namesz] = 0;
-
-  if(memcmp(romname, savename, namesz)) {
-    systemMessage(MSG_CANNOT_IMPORT_SNAPSHOT_FOR,
-                  N_("Cannot import snapshot for %s. Current game is %s"),
-                  savename,
-                  romname);
-    fclose(file);
-    return false;
-  }
-
-  // read footer tag
-  fseek(file, footerpos, SEEK_SET);
-  fread(footer, 1, footersz, file);
-  footer[footersz] = 0;
-
-  if(memcmp(footer, gsvfooter, footersz)) {
-    systemMessage(0,
-                  N_("Unsupported snapshot file %s. Footer '%s' at %u should be '%s'"),
-                  fileName,
-				  footer,
-                  footerpos,
-				  gsvfooter);
-    fclose(file);
-    return false;
-  }
-
-  // Read up to 128k save
-  fread(flashSaveMemory, 1, FLASH_128K_SZ, file);
-
-  fclose(file);
-  CPUReset();
-  return true;
-}
-
-
-bool CPUWriteGSASnapshot(const char *fileName,
-                         const char *title,
-                         const char *desc,
-                         const char *notes)
-{
-  FILE *file = fopen(fileName, "wb");
-
-  if(!file) {
-    systemMessage(MSG_CANNOT_OPEN_FILE, N_("Cannot open file %s"), fileName);
-    return false;
-  }
-
-  u8 buffer[17];
-
-  utilPutDword(buffer, 0x0d); // SharkPortSave length
-  fwrite(buffer, 1, 4, file);
-  fwrite("SharkPortSave", 1, 0x0d, file);
-  utilPutDword(buffer, 0x000f0000);
-  fwrite(buffer, 1, 4, file); // save type 0x000f0000 = GBA save
-  utilPutDword(buffer, (u32)strlen(title));
-  fwrite(buffer, 1, 4, file); // title length
-  fwrite(title, 1, strlen(title), file);
-  utilPutDword(buffer, (u32)strlen(desc));
-  fwrite(buffer, 1, 4, file); // desc length
-  fwrite(desc, 1, strlen(desc), file);
-  utilPutDword(buffer, (u32)strlen(notes));
-  fwrite(buffer, 1, 4, file); // notes length
-  fwrite(notes, 1, strlen(notes), file);
-  int saveSize = 0x10000;
-  if(gbaSaveType == 2)
-    saveSize = flashSize;
-  int totalSize = saveSize + 0x1c;
-
-  utilPutDword(buffer, totalSize); // length of remainder of save - CRC
-  fwrite(buffer, 1, 4, file);
-
-  char *temp = new char[0x2001c];
-  memset(temp, 0, 28);
-  memcpy(temp, &rom[0xa0], 16); // copy internal name
-  temp[0x10] = rom[0xbe]; // reserved area (old checksum)
-  temp[0x11] = rom[0xbf]; // reserved area (old checksum)
-  temp[0x12] = rom[0xbd]; // complement check
-  temp[0x13] = rom[0xb0]; // maker
-  temp[0x14] = 1; // 1 save ?
-  memcpy(&temp[0x1c], flashSaveMemory, saveSize); // copy save
-  fwrite(temp, 1, totalSize, file); // write save + header
-  u32 crc = 0;
-
-  for(int i = 0; i < totalSize; i++) {
-    crc += ((u32)temp[i] << (crc % 0x18));
-  }
-
-  utilPutDword(buffer, crc);
-  fwrite(buffer, 1, 4, file); // CRC?
-
-  fclose(file);
-  delete [] temp;
-  return true;
-}
-
-bool CPUImportEepromFile(const char *fileName)
-{
-  FILE *file = fopen(fileName, "rb");
-
-  if(!file)
-    return false;
-
-  // check file size to know what we should read
-  fseek(file, 0, SEEK_END);
-
-  long size = ftell(file);
-  fseek(file, 0, SEEK_SET);
-  if(size == 512 || size == 0x2000) {
-    if(fread(eepromData, 1, size, file) != (size_t)size) {
-      fclose(file);
-      return false;
-    }
-    for(int i = 0; i < size;) {
-      u8 tmp = eepromData[i];
-      eepromData[i] = eepromData[7-i];
-      eepromData[7-i] = tmp;
-      i++;
-      tmp = eepromData[i];
-      eepromData[i] = eepromData[7-i];
-      eepromData[7-i] = tmp;
-      i++;
-      tmp = eepromData[i];
-      eepromData[i] = eepromData[7-i];
-      eepromData[7-i] = tmp;
-      i++;
-      tmp = eepromData[i];
-      eepromData[i] = eepromData[7-i];
-      eepromData[7-i] = tmp;
-      i++;
-      i += 4;
-    }
-  } else {
-    fclose(file);
-    return false;
-  }
-  fclose(file);
-  return true;
-}
+//bool CPUReadGSASnapshot(const char *fileName)
+//{
+//  int i;
+//  FILE *file = fopen(fileName, "rb");
+//
+//  if(!file) {
+//    systemMessage(MSG_CANNOT_OPEN_FILE, N_("Cannot open file %s"), fileName);
+//    return false;
+//  }
+//
+//  // check file size to know what we should read
+//  fseek(file, 0, SEEK_END);
+//
+//  // long size = ftell(file);
+//  fseek(file, 0x0, SEEK_SET);
+//  fread(&i, 1, 4, file);
+//  fseek(file, i, SEEK_CUR); // Skip SharkPortSave
+//  fseek(file, 4, SEEK_CUR); // skip some sort of flag
+//  fread(&i, 1, 4, file); // name length
+//  fseek(file, i, SEEK_CUR); // skip name
+//  fread(&i, 1, 4, file); // desc length
+//  fseek(file, i, SEEK_CUR); // skip desc
+//  fread(&i, 1, 4, file); // notes length
+//  fseek(file, i, SEEK_CUR); // skip notes
+//  int saveSize;
+//  fread(&saveSize, 1, 4, file); // read length
+//  saveSize -= 0x1c; // remove header size
+//  char buffer[17];
+//  char buffer2[17];
+//  fread(buffer, 1, 16, file);
+//  buffer[16] = 0;
+//  for(i = 0; i < 16; i++)
+//    if(buffer[i] < 32)
+//      buffer[i] = 32;
+//  memcpy(buffer2, &rom[0xa0], 16);
+//  buffer2[16] = 0;
+//  for(i = 0; i < 16; i++)
+//    if(buffer2[i] < 32)
+//      buffer2[i] = 32;
+//  if(memcmp(buffer, buffer2, 16)) {
+//    systemMessage(MSG_CANNOT_IMPORT_SNAPSHOT_FOR,
+//                  N_("Cannot import snapshot for %s. Current game is %s"),
+//                  buffer,
+//                  buffer2);
+//    fclose(file);
+//    return false;
+//  }
+//  fseek(file, 12, SEEK_CUR); // skip some flags
+//  if(saveSize >= 65536) {
+//    if(fread(flashSaveMemory, 1, saveSize, file) != (size_t)saveSize) {
+//      fclose(file);
+//      return false;
+//    }
+//  } else {
+//    systemMessage(MSG_UNSUPPORTED_SNAPSHOT_FILE,
+//                  N_("Unsupported snapshot file %s"),
+//                  fileName);
+//    fclose(file);
+//    return false;
+//  }
+//  fclose(file);
+//  CPUReset();
+//  return true;
+//}
+//
+//bool CPUReadGSASPSnapshot(const char *fileName)
+//{
+//  const char gsvfooter[] = "xV4\x12";
+//  const size_t namepos=0x0c, namesz=12;
+//  const size_t footerpos=0x42c, footersz=4;
+//
+//  char footer[footersz+1], romname[namesz+1], savename[namesz+1];;
+//  FILE *file = fopen(fileName, "rb");
+//
+//  if(!file) {
+//    systemMessage(MSG_CANNOT_OPEN_FILE, N_("Cannot open file %s"), fileName);
+//    return false;
+//  }
+//
+//  // read save name
+//  fseek(file, namepos, SEEK_SET);
+//  fread(savename, 1, namesz, file);
+//  savename[namesz] = 0;
+//
+//  memcpy(romname, &rom[0xa0], namesz);
+//  romname[namesz] = 0;
+//
+//  if(memcmp(romname, savename, namesz)) {
+//    systemMessage(MSG_CANNOT_IMPORT_SNAPSHOT_FOR,
+//                  N_("Cannot import snapshot for %s. Current game is %s"),
+//                  savename,
+//                  romname);
+//    fclose(file);
+//    return false;
+//  }
+//
+//  // read footer tag
+//  fseek(file, footerpos, SEEK_SET);
+//  fread(footer, 1, footersz, file);
+//  footer[footersz] = 0;
+//
+//  if(memcmp(footer, gsvfooter, footersz)) {
+//    systemMessage(0,
+//                  N_("Unsupported snapshot file %s. Footer '%s' at %u should be '%s'"),
+//                  fileName,
+//				  footer,
+//                  footerpos,
+//				  gsvfooter);
+//    fclose(file);
+//    return false;
+//  }
+//
+//  // Read up to 128k save
+//  fread(flashSaveMemory, 1, FLASH_128K_SZ, file);
+//
+//  fclose(file);
+//  CPUReset();
+//  return true;
+//}
+//
+//
+//bool CPUWriteGSASnapshot(const char *fileName,
+//                         const char *title,
+//                         const char *desc,
+//                         const char *notes)
+//{
+//  FILE *file = fopen(fileName, "wb");
+//
+//  if(!file) {
+//    systemMessage(MSG_CANNOT_OPEN_FILE, N_("Cannot open file %s"), fileName);
+//    return false;
+//  }
+//
+//  u8 buffer[17];
+//
+//  utilPutDword(buffer, 0x0d); // SharkPortSave length
+//  fwrite(buffer, 1, 4, file);
+//  fwrite("SharkPortSave", 1, 0x0d, file);
+//  utilPutDword(buffer, 0x000f0000);
+//  fwrite(buffer, 1, 4, file); // save type 0x000f0000 = GBA save
+//  utilPutDword(buffer, (u32)strlen(title));
+//  fwrite(buffer, 1, 4, file); // title length
+//  fwrite(title, 1, strlen(title), file);
+//  utilPutDword(buffer, (u32)strlen(desc));
+//  fwrite(buffer, 1, 4, file); // desc length
+//  fwrite(desc, 1, strlen(desc), file);
+//  utilPutDword(buffer, (u32)strlen(notes));
+//  fwrite(buffer, 1, 4, file); // notes length
+//  fwrite(notes, 1, strlen(notes), file);
+//  int saveSize = 0x10000;
+//  if(gbaSaveType == 2)
+//    saveSize = flashSize;
+//  int totalSize = saveSize + 0x1c;
+//
+//  utilPutDword(buffer, totalSize); // length of remainder of save - CRC
+//  fwrite(buffer, 1, 4, file);
+//
+//  char *temp = new char[0x2001c];
+//  memset(temp, 0, 28);
+//  memcpy(temp, &rom[0xa0], 16); // copy internal name
+//  temp[0x10] = rom[0xbe]; // reserved area (old checksum)
+//  temp[0x11] = rom[0xbf]; // reserved area (old checksum)
+//  temp[0x12] = rom[0xbd]; // complement check
+//  temp[0x13] = rom[0xb0]; // maker
+//  temp[0x14] = 1; // 1 save ?
+//  memcpy(&temp[0x1c], flashSaveMemory, saveSize); // copy save
+//  fwrite(temp, 1, totalSize, file); // write save + header
+//  u32 crc = 0;
+//
+//  for(int i = 0; i < totalSize; i++) {
+//    crc += ((u32)temp[i] << (crc % 0x18));
+//  }
+//
+//  utilPutDword(buffer, crc);
+//  fwrite(buffer, 1, 4, file); // CRC?
+//
+//  fclose(file);
+//  delete [] temp;
+//  return true;
+//}
+//
+//bool CPUImportEepromFile(const char *fileName)
+//{
+//  FILE *file = fopen(fileName, "rb");
+//
+//  if(!file)
+//    return false;
+//
+//  // check file size to know what we should read
+//  fseek(file, 0, SEEK_END);
+//
+//  long size = ftell(file);
+//  fseek(file, 0, SEEK_SET);
+//  if(size == 512 || size == 0x2000) {
+//    if(fread(eepromData, 1, size, file) != (size_t)size) {
+//      fclose(file);
+//      return false;
+//    }
+//    for(int i = 0; i < size;) {
+//      u8 tmp = eepromData[i];
+//      eepromData[i] = eepromData[7-i];
+//      eepromData[7-i] = tmp;
+//      i++;
+//      tmp = eepromData[i];
+//      eepromData[i] = eepromData[7-i];
+//      eepromData[7-i] = tmp;
+//      i++;
+//      tmp = eepromData[i];
+//      eepromData[i] = eepromData[7-i];
+//      eepromData[7-i] = tmp;
+//      i++;
+//      tmp = eepromData[i];
+//      eepromData[i] = eepromData[7-i];
+//      eepromData[7-i] = tmp;
+//      i++;
+//      i += 4;
+//    }
+//  } else {
+//    fclose(file);
+//    return false;
+//  }
+//  fclose(file);
+//  return true;
+//}
 
 bool CPUReadBatteryFile(const char *fileName)
 {
-  FILE *file = fopen(fileName, "rb");
-
-  if(!file)
-    return false;
-
-  // check file size to know what we should read
-  fseek(file, 0, SEEK_END);
-
-  long size = ftell(file);
-  fseek(file, 0, SEEK_SET);
+//  FILE *file = fopen(fileName, "rb");
+//
+//  if(!file)
+//    return false;
+//
+//  // check file size to know what we should read
+//  fseek(file, 0, SEEK_END);
+//
+//  long size = ftell(file);
+//  fseek(file, 0, SEEK_SET);
+    
+  long size = EM_ASM_INT({return window["VBAInterface"]["getSaveSize"]()}, 0);
   systemSaveUpdateCounter = SYSTEM_SAVE_NOT_UPDATED;
 
   if(size == 512 || size == 0x2000) {
-    if(fread(eepromData, 1, size, file) != (size_t)size) {
-      fclose(file);
-      return false;
-    }
+    EM_ASM_INT({return window["VBAInterface"]["restoreSaveMemory"]($0, $1)}, eepromData, size);
+//    if(fread(eepromData, 1, size, file) != (size_t)size) {
+//      fclose(file);
+//      return false;
+//    }
   } else {
     if(size == 0x20000) {
-      if(fread(flashSaveMemory, 1, 0x20000, file) != 0x20000) {
-        fclose(file);
-        return false;
-      }
+      EM_ASM_INT({return window["VBAInterface"]["restoreSaveMemory"]($0, $1)}, flashSaveMemory, size);
+//      if(fread(flashSaveMemory, 1, 0x20000, file) != 0x20000) {
+//        fclose(file);
+//        return false;
+//      }
       flashSetSize(0x20000);
     } else if(size == 0x10000) {
-      if(fread(flashSaveMemory, 1, 0x10000, file) != 0x10000) {
-        fclose(file);
-        return false;
-      }
+      EM_ASM_INT({return window["VBAInterface"]["restoreSaveMemory"]($0, $1)}, flashSaveMemory, size);
+//      if(fread(flashSaveMemory, 1, 0x10000, file) != 0x10000) {
+//        fclose(file);
+//        return false;
+//      }
       flashSetSize(0x10000);
 	} else if (size == 0x8000) {
-	  if (fread(flashSaveMemory, 1, 0x8000, file) != 0x8000) {
-		  fclose(file);
-		  return false;
-	  }
+      EM_ASM_INT({return window["VBAInterface"]["restoreSaveMemory"]($0, $1)}, flashSaveMemory, size);
+//	  if (fread(flashSaveMemory, 1, 0x8000, file) != 0x8000) {
+//		  fclose(file);
+//		  return false;
+//	  }
     }
   }
-  fclose(file);
+//  fclose(file);
   return true;
 }
 
-bool CPUWritePNGFile(const char *fileName)
-{
-  return utilWritePNGFile(fileName, 240, 160, pix);
-}
-
-bool CPUWriteBMPFile(const char *fileName)
-{
-  return utilWriteBMPFile(fileName, 240, 160, pix);
-}
-
-bool CPUIsZipFile(const char * file)
-{
-  if(strlen(file) > 4) {
-    const char * p = strrchr(file,'.');
-
-    if(p != NULL) {
-      if(_stricmp(p, ".zip") == 0)
-        return true;
-    }
-  }
-
-  return false;
-}
-
-bool CPUIsGBAImage(const char * file)
-{
-  cpuIsMultiBoot = false;
-  if(strlen(file) > 4) {
-    const char * p = strrchr(file,'.');
-
-    if(p != NULL) {
-      if(_stricmp(p, ".gba") == 0)
-        return true;
-      if(_stricmp(p, ".agb") == 0)
-        return true;
-      if(_stricmp(p, ".bin") == 0)
-        return true;
-      if(_stricmp(p, ".elf") == 0)
-        return true;
-      if(_stricmp(p, ".mb") == 0) {
-        cpuIsMultiBoot = true;
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-bool CPUIsGBABios(const char * file)
-{
-  if(strlen(file) > 4) {
-    const char * p = strrchr(file,'.');
-
-    if(p != NULL) {
-      if(_stricmp(p, ".gba") == 0)
-        return true;
-      if(_stricmp(p, ".agb") == 0)
-        return true;
-      if(_stricmp(p, ".bin") == 0)
-        return true;
-      if(_stricmp(p, ".bios") == 0)
-        return true;
-      if(_stricmp(p, ".rom") == 0)
-        return true;
-    }
-  }
-
-  return false;
-}
-
-bool CPUIsELF(const char *file)
-{
-  if(file == NULL)
-	  return false;
-
-  if(strlen(file) > 4) {
-    const char * p = strrchr(file,'.');
-
-    if(p != NULL) {
-      if(_stricmp(p, ".elf") == 0)
-        return true;
-    }
-  }
-  return false;
-}
+//bool CPUWritePNGFile(const char *fileName)
+//{
+//  return utilWritePNGFile(fileName, 240, 160, pix);
+//}
+//
+//bool CPUWriteBMPFile(const char *fileName)
+//{
+//  return utilWriteBMPFile(fileName, 240, 160, pix);
+//}
+//
+//bool CPUIsZipFile(const char * file)
+//{
+//  if(strlen(file) > 4) {
+//    const char * p = strrchr(file,'.');
+//
+//    if(p != NULL) {
+//      if(_stricmp(p, ".zip") == 0)
+//        return true;
+//    }
+//  }
+//
+//  return false;
+//}
+//
+//bool CPUIsGBAImage(const char * file)
+//{
+//  cpuIsMultiBoot = false;
+//  if(strlen(file) > 4) {
+//    const char * p = strrchr(file,'.');
+//
+//    if(p != NULL) {
+//      if(_stricmp(p, ".gba") == 0)
+//        return true;
+//      if(_stricmp(p, ".agb") == 0)
+//        return true;
+//      if(_stricmp(p, ".bin") == 0)
+//        return true;
+//      if(_stricmp(p, ".elf") == 0)
+//        return true;
+//      if(_stricmp(p, ".mb") == 0) {
+//        cpuIsMultiBoot = true;
+//        return true;
+//      }
+//    }
+//  }
+//
+//  return false;
+//}
+//
+//bool CPUIsGBABios(const char * file)
+//{
+//  if(strlen(file) > 4) {
+//    const char * p = strrchr(file,'.');
+//
+//    if(p != NULL) {
+//      if(_stricmp(p, ".gba") == 0)
+//        return true;
+//      if(_stricmp(p, ".agb") == 0)
+//        return true;
+//      if(_stricmp(p, ".bin") == 0)
+//        return true;
+//      if(_stricmp(p, ".bios") == 0)
+//        return true;
+//      if(_stricmp(p, ".rom") == 0)
+//        return true;
+//    }
+//  }
+//
+//  return false;
+//}
+//
+//bool CPUIsELF(const char *file)
+//{
+//  if(file == NULL)
+//	  return false;
+//
+//  if(strlen(file) > 4) {
+//    const char * p = strrchr(file,'.');
+//
+//    if(p != NULL) {
+//      if(_stricmp(p, ".elf") == 0)
+//        return true;
+//    }
+//  }
+//  return false;
+//}
 
 void CPUCleanUp()
 {
@@ -1496,6 +1507,7 @@ void SetMapMasks()
 	map[14].mask = 0xFFFF;
 
 	for (int i = 0; i < 16; i++) {
+#ifdef BKPT_SUPPORT
 		map[i].size = map[i].mask + 1;
 		if (map[i].size > 0) {
 			map[i].trace = (u8 *)calloc(map[i].size >> 3, sizeof(u8));
@@ -1512,8 +1524,9 @@ void SetMapMasks()
 			map[i].breakPoints = NULL; //\\
 
 		}
+#endif
 	}
-	clearBreakRegList();
+//	clearBreakRegList();
 }
 
 int CPULoadRom(const char *szFile)
@@ -1619,11 +1632,11 @@ int CPULoadRom(const char *szFile)
     CPUCleanUp();
     return 0;
   }
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
   pix = (u8 *)calloc(1, 4 * 240 * 160);
-#else
-  pix = (u8 *)calloc(1, 4 * 241 * 162);
-#endif
+//#else
+//  pix = (u8 *)calloc(1, 4 * 241 * 162);
+//#endif
   if(pix == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "PIX");
@@ -1648,6 +1661,7 @@ int CPULoadRom(const char *szFile)
 
 int CPULoadRomData(const char *data, int size)
 {
+
   romSize = 0x2000000;
   if(rom != NULL) {
     CPUCleanUp();
@@ -1669,10 +1683,13 @@ int CPULoadRomData(const char *data, int size)
   }
 
   u8 *whereToLoad = cpuIsMultiBoot ? workRAM : rom;
-
+  
   romSize = size % 2 == 0 ? size : size + 1;
-  memcpy(whereToLoad, data, size);
-
+  //memcpy(whereToLoad, data, size);
+  
+  // Custom loading code
+  EM_ASM_INT({return window["VBAInterface"]["copyRomToMemory"]($0);}, (int) whereToLoad);
+    
   u16 *temp = (u16 *)(rom+((romSize+1)&~1));
   int i;
   for(i = (romSize+1)&~1; i < 0x2000000; i+=2) {
@@ -1715,11 +1732,11 @@ int CPULoadRomData(const char *data, int size)
     CPUCleanUp();
     return 0;
   }
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
   pix = (u8 *)calloc(1, 4 * 240 * 160);
-#else
-  pix = (u8 *)calloc(1, 4 * 241 * 162);
-#endif
+//#else
+//  pix = (u8 *)calloc(1, 4 * 241 * 162);
+//#endif
   if(pix == NULL) {
     systemMessage(MSG_OUT_OF_MEMORY, N_("Failed to allocate memory for %s"),
                   "PIX");
@@ -3392,23 +3409,26 @@ void CPUInit(const char *biosFileName, bool useBiosFile)
   eepromInUse = 0;
   useBios = false;
 
-  if(useBiosFile && strlen(biosFileName) > 0) {
-    int size = 0x4000;
-    if(utilLoad(biosFileName,
-                CPUIsGBABios,
-                bios,
-                size)) {
-      if(size == 0x4000)
-        useBios = true;
-      else
-        systemMessage(MSG_INVALID_BIOS_FILE_SIZE, N_("Invalid BIOS file size"));
-    }
-  }
+//  if(useBiosFile && strlen(biosFileName) > 0) {
+//    int size = 0x4000;
+//    if(utilLoad(biosFileName,
+//                CPUIsGBABios,
+//                bios,
+//                size)) {
+//      if(size == 0x4000)
+//        useBios = true;
+//      else
+//        systemMessage(MSG_INVALID_BIOS_FILE_SIZE, N_("Invalid BIOS file size"));
+//    }
+//  }
 
+  // I don't understand why it does this... It might be a custom bios.
   if(!useBios) {
     memcpy(bios, myROM, sizeof(myROM));
   }
 
+  
+  
   int i = 0;
 
   biosProtected[0] = 0x00;
@@ -3958,8 +3978,8 @@ void CPULoop(int ticks)
 
               u32 ext = (joy >> 10);
               // If no (m) code is enabled, apply the cheats at each LCDline
-              if((cheatsEnabled) && (mastercode==0))
-                remainingTicks += cheatsCheckKeys(P1^0x3FF, ext);
+//              if((cheatsEnabled) && (mastercode==0))
+//                remainingTicks += cheatsCheckKeys(P1^0x3FF, ext);
               speedup = (ext & 1) ? true : false;
               capture = (ext & 2) ? true : false;
 
@@ -3996,11 +4016,11 @@ void CPULoop(int ticks)
               switch(systemColorDepth) {
                 case 16:
                 {
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
                   u16 *dest = (u16 *)pix + 240 * VCOUNT;
-#else
-                  u16 *dest = (u16 *)pix + 242 * (VCOUNT+1);
-#endif
+//#else
+//                  u16 *dest = (u16 *)pix + 242 * (VCOUNT+1);
+//#endif
                   for(int x = 0; x < 240;) {
                     *dest++ = systemColorMap16[lineMix[x++]&0xFFFF];
                     *dest++ = systemColorMap16[lineMix[x++]&0xFFFF];
@@ -4023,9 +4043,9 @@ void CPULoop(int ticks)
                     *dest++ = systemColorMap16[lineMix[x++]&0xFFFF];
                   }
                   // for filters that read past the screen
-#ifndef __LIBRETRO__
-                  *dest++ = 0;
-#endif
+//#ifndef __LIBRETRO__
+//                  *dest++ = 0;
+//#endif
                 }
                 break;
                 case 24:
@@ -4072,11 +4092,11 @@ void CPULoop(int ticks)
                 break;
                 case 32:
                 {
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
                   u32 *dest = (u32 *)pix + 240 * VCOUNT;
-#else
-                  u32 *dest = (u32 *)pix + 241 * (VCOUNT+1);
-#endif
+//#else
+//                  u32 *dest = (u32 *)pix + 241 * (VCOUNT+1);
+//#endif
                   for(int x = 0; x < 240; ) {
                     *dest++ = systemColorMap32[lineMix[x++] & 0xFFFF];
                     *dest++ = systemColorMap32[lineMix[x++] & 0xFFFF];
@@ -4611,21 +4631,21 @@ struct EmulatedSystem GBASystem = {
   // emuWriteBattery
   CPUWriteBatteryFile,
   // emuReadState
-  CPUReadState,
+  NULL,//CPUReadState,
   // emuWriteState
-  CPUWriteState,
+  NULL,//CPUWriteState,
   // emuReadMemState
-#ifdef __LIBRETRO__
-  NULL,
-#else
-  CPUReadMemState,
-#endif
+//#ifdef __LIBRETRO__
+//  NULL,
+//#else
+  NULL,//CPUReadMemState,
+//#endif
   // emuWriteMemState
-  CPUWriteMemState,
+  NULL,//CPUWriteMemState,
   // emuWritePNG
-  CPUWritePNGFile,
+  NULL,//CPUWritePNGFile,
   // emuWriteBMP
-  CPUWriteBMPFile,
+  NULL,//CPUWriteBMPFile,
   // emuUpdateCPSR
   CPUUpdateCPSR,
   // emuHasDebugger

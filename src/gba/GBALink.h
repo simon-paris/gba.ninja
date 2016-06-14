@@ -138,7 +138,7 @@ extern void CleanLocalLink();
  * @return completed filename
  */
 
-extern const char *MakeInstanceFilename(const char *Input);
+//extern const char *MakeInstanceFilename(const char *Input);
 
 // register definitions
 #define COMM_SIODATA32_L	0x120 // Lower 16bit on Normal mode

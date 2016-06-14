@@ -58,9 +58,9 @@ typedef union {
 #endif
 } reg_pair;
 
-#ifndef NO_GBA_MAP
+//#ifndef NO_GBA_MAP
 extern memoryMap map[256];
-#endif
+//#endif
 
 extern u8 biosProtected[4];
 
@@ -78,27 +78,27 @@ extern char oldbuffer[10];
 extern bool debugger;
 #endif
 
-extern bool CPUReadGSASnapshot(const char *);
-extern bool CPUReadGSASPSnapshot(const char *);
-extern bool CPUWriteGSASnapshot(const char *, const char *, const char *, const char *);
-extern bool CPUWriteBatteryFile(const char *);
-extern bool CPUReadBatteryFile(const char *);
-extern bool CPUExportEepromFile(const char *);
-extern bool CPUImportEepromFile(const char *);
-extern bool CPUWritePNGFile(const char *);
-extern bool CPUWriteBMPFile(const char *);
+//extern bool CPUReadGSASnapshot(const char *);
+//extern bool CPUReadGSASPSnapshot(const char *);
+//extern bool CPUWriteGSASnapshot(const char *, const char *, const char *, const char *);
+//extern bool CPUWriteBatteryFile(const char *);
+//extern bool CPUReadBatteryFile(const char *);
+//extern bool CPUExportEepromFile(const char *);
+//extern bool CPUImportEepromFile(const char *);
+//extern bool CPUWritePNGFile(const char *);
+//extern bool CPUWriteBMPFile(const char *);
 extern void CPUCleanUp();
 extern void CPUUpdateRender();
 extern void CPUUpdateRenderBuffers(bool);
-extern bool CPUReadMemState(char *, int);
-extern bool CPUWriteMemState(char *, int);
-#ifdef __LIBRETRO__
+//extern bool CPUReadMemState(char *, int);
+//extern bool CPUWriteMemState(char *, int);
+//#ifdef __LIBRETRO__
 extern bool CPUReadState(const u8*, unsigned);
 extern unsigned int CPUWriteState(u8 *data, unsigned int size);
-#else
-extern bool CPUReadState(const char *);
-extern bool CPUWriteState(const char *);
-#endif
+//#else
+//extern bool CPUReadState(const char *);
+//extern bool CPUWriteState(const char *);
+//#endif
 extern int CPULoadRom(const char *);
 extern int CPULoadRomData(const char *data, int size);
 extern void doMirroring(bool);
@@ -109,18 +109,18 @@ void SetSaveType(int st);
 extern void CPUReset();
 extern void CPULoop(int);
 extern void CPUCheckDMA(int,int);
-extern bool CPUIsGBAImage(const char *);
-extern bool CPUIsZipFile(const char *);
-#ifdef PROFILING
-#include "prof/prof.h"
-extern void cpuProfil(profile_segment *seg);
-extern void cpuEnableProfiling(int hz);
-#endif
+//extern bool CPUIsGBAImage(const char *);
+//extern bool CPUIsZipFile(const char *);
+//#ifdef PROFILING
+//#include "prof/prof.h"
+//extern void cpuProfil(profile_segment *seg);
+//extern void cpuEnableProfiling(int hz);
+//#endif
 
-const char* GetLoadDotCodeFile();
-const char* GetSaveDotCodeFile();
-void SetLoadDotCodeFile(const char *szFile);
-void SetSaveDotCodeFile(const char *szFile);
+//const char* GetLoadDotCodeFile();
+//const char* GetSaveDotCodeFile();
+//void SetLoadDotCodeFile(const char *szFile);
+//void SetSaveDotCodeFile(const char *szFile);
 
 extern struct EmulatedSystem GBASystem;
 
@@ -147,7 +147,7 @@ extern struct EmulatedSystem GBASystem;
 #define R14_FIQ  43
 #define SPSR_FIQ 44
 
-#include "Cheats.h"
+//#include "Cheats.h"
 #include "Globals.h"
 #include "EEprom.h"
 #include "Flash.h"

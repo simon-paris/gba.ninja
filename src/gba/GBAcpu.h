@@ -4,19 +4,19 @@
 extern int armExecute();
 extern int thumbExecute();
 
-#ifdef __GNUC__
-#ifndef __APPLE__
-# define INSN_REGPARM __attribute__((regparm(1)))
-#else
-# define INSN_REGPARM /*nothing*/
-#endif
-# define LIKELY(x) __builtin_expect(!!(x),1)
-# define UNLIKELY(x) __builtin_expect(!!(x),0)
-#else
+//#ifdef __GNUC__
+//#ifndef __APPLE__
+//# define INSN_REGPARM __attribute__((regparm(1)))
+//#else
+//# define INSN_REGPARM /*nothing*/
+//#endif
+//# define LIKELY(x) __builtin_expect(!!(x),1)
+//# define UNLIKELY(x) __builtin_expect(!!(x),0)
+//#else
 # define INSN_REGPARM /*nothing*/
 # define LIKELY(x) (x)
 # define UNLIKELY(x) (x)
-#endif
+//#endif
 
 #define UPDATE_REG(address, value)\
   {\
@@ -272,16 +272,16 @@ inline int codeTicksAccessSeq32(u32 address) // ARM SEQ
 
 
 // Emulates the Cheat System (m) code
-inline void cpuMasterCodeCheck()
-{
-  if((mastercode) && (mastercode == armNextPC))
-  {
-    u32 joy = 0;
-    if(systemReadJoypads())
-      joy = systemReadJoypad(-1);
-    u32 ext = (joy >> 10);
-    cpuTotalTicks += cheatsCheckKeys(P1^0x3FF, ext);
-  }
-}
+//inline void cpuMasterCodeCheck()
+//{
+//  if((mastercode) && (mastercode == armNextPC))
+//  {
+//    u32 joy = 0;
+//    if(systemReadJoypads())
+//      joy = systemReadJoypad(-1);
+//    u32 ext = (joy >> 10);
+//    cpuTotalTicks += cheatsCheckKeys(P1^0x3FF, ext);
+//  }
+//}
 
 #endif // GBACPU_H

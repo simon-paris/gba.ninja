@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include <emscripten.h>
+
 #include "GBA.h"
 #include "GBAcpu.h"
 #include "GBAinline.h"
@@ -2869,16 +2871,17 @@ static void tester(void) {
 int armExecute()
 {
     do {
-		if( cheatsEnabled ) {
-			cpuMasterCodeCheck();
-		}
+//		if( cheatsEnabled ) {
+//			cpuMasterCodeCheck();
+//		}
+        
 
         if ((armNextPC & 0x0803FFFF) == 0x08020000)
           busPrefetchCount = 0x100;
 
         u32 opcode = cpuPrefetch[0];
         cpuPrefetch[0] = cpuPrefetch[1];
-
+        
         busPrefetch = false;
         if (busPrefetchCount & 0xFFFFFE00)
             busPrefetchCount = 0x100 | (busPrefetchCount & 0xFF);

@@ -352,34 +352,34 @@ static void end_frame( blip_time_t time )
 
 void flush_samples(Multi_Buffer * buffer)
 {
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
    int numSamples = buffer->read_samples( (blip_sample_t*) soundFinalWave, buffer->samples_avail() );
    soundDriver->write(soundFinalWave, numSamples);
    systemOnWriteDataToSoundBuffer(soundFinalWave, numSamples);
-#else
-	// We want to write the data frame by frame to support legacy audio drivers
-	// that don't use the length parameter of the write method.
-	// TODO: Update the Win32 audio drivers (DS, OAL, XA2), and flush all the
-	// samples at once to help reducing the audio delay on all platforms.
-	int soundBufferLen = ( soundSampleRate / 60 ) * 4;
-
-	// soundBufferLen should have a whole number of sample pairs
-	assert( soundBufferLen % (2 * sizeof *soundFinalWave) == 0 );
-
-	// number of samples in output buffer
-	int const out_buf_size = soundBufferLen / sizeof *soundFinalWave;
-
-	// Keep filling and writing soundFinalWave until it can't be fully filled
-	while ( buffer->samples_avail() >= out_buf_size )
-	{
-		buffer->read_samples( (blip_sample_t*) soundFinalWave, out_buf_size );
-		if(soundPaused)
-			soundResume();
-
-		soundDriver->write(soundFinalWave, soundBufferLen);
-		systemOnWriteDataToSoundBuffer(soundFinalWave, soundBufferLen);
-	}
-#endif
+//#else
+//	// We want to write the data frame by frame to support legacy audio drivers
+//	// that don't use the length parameter of the write method.
+//	// TODO: Update the Win32 audio drivers (DS, OAL, XA2), and flush all the
+//	// samples at once to help reducing the audio delay on all platforms.
+//	int soundBufferLen = ( soundSampleRate / 60 ) * 4;
+//
+//	// soundBufferLen should have a whole number of sample pairs
+//	assert( soundBufferLen % (2 * sizeof *soundFinalWave) == 0 );
+//
+//	// number of samples in output buffer
+//	int const out_buf_size = soundBufferLen / sizeof *soundFinalWave;
+//
+//	// Keep filling and writing soundFinalWave until it can't be fully filled
+//	while ( buffer->samples_avail() >= out_buf_size )
+//	{
+//		buffer->read_samples( (blip_sample_t*) soundFinalWave, out_buf_size );
+//		if(soundPaused)
+//			soundResume();
+//
+//		soundDriver->write(soundFinalWave, soundBufferLen);
+//		systemOnWriteDataToSoundBuffer(soundFinalWave, soundBufferLen);
+//	}
+//#endif
 }
 
 static void apply_filtering()
@@ -745,97 +745,97 @@ static variable_desc gba_state [] =
 };
 
 
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
 void soundSaveGame( u8 *&out )
-#else
-void soundSaveGame( gzFile out )
-#endif
+//#else
+//void soundSaveGame( gzFile out )
+//#endif
 {
 	gb_apu->save_state( &state.apu );
 
 	// Be sure areas for expansion get written as zero
 	memset( dummy_state, 0, sizeof dummy_state );
 
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
 	utilWriteDataMem( out, gba_state );
-#else
-	utilWriteData( out, gba_state );
-#endif
+//#else
+//	utilWriteData( out, gba_state );
+//#endif
 }
 
-#ifndef __LIBRETRO__
-// Reads and discards count bytes from in
-static void skip_read( gzFile in, int count )
-{
-	char buf [512];
-
-	while ( count )
-	{
-		int n = sizeof buf;
-		if ( n > count )
-			n = count;
-
-		count -= n;
-		utilGzRead( in, buf, n );
-	}
-}
-
-static void soundReadGameOld( gzFile in, int version )
-{
-	// Read main data
-	utilReadData( in, old_gba_state );
-	skip_read( in, 6*735 + 2*735 );
-
-	// Copy APU regs
-	static int const regs_to_copy [] = {
-		NR10, NR11, NR12, NR13, NR14,
-		      NR21, NR22, NR23, NR24,
-		NR30, NR31, NR32, NR33, NR34,
-		      NR41, NR42, NR43, NR44,
-		NR50, NR51, NR52, -1
-	};
-
-	ioMem [NR52] |= 0x80; // old sound played even when this wasn't set (power on)
-
-	for ( int i = 0; regs_to_copy [i] >= 0; i++ )
-		state.apu.regs [gba_to_gb_sound( regs_to_copy [i] ) - 0xFF10] = ioMem [regs_to_copy [i]];
-
-	// Copy wave RAM to both banks
-	memcpy( &state.apu.regs [0x20], &ioMem [0x90], 0x10 );
-	memcpy( &state.apu.regs [0x30], &ioMem [0x90], 0x10 );
-
-	// Read both banks of wave RAM if available
-	if ( version >= SAVE_GAME_VERSION_3 )
-		utilReadData( in, old_gba_state2 );
-
-	// Restore PCM
-	pcm [0].dac = state.soundDSAValue;
-	pcm [1].dac = state.soundDSBValue;
-
-	(void) utilReadInt( in ); // ignore quality
-}
-#endif
+//#ifndef __LIBRETRO__
+//// Reads and discards count bytes from in
+//static void skip_read( gzFile in, int count )
+//{
+//	char buf [512];
+//
+//	while ( count )
+//	{
+//		int n = sizeof buf;
+//		if ( n > count )
+//			n = count;
+//
+//		count -= n;
+//		utilGzRead( in, buf, n );
+//	}
+//}
+//
+//static void soundReadGameOld( gzFile in, int version )
+//{
+//	// Read main data
+//	utilReadData( in, old_gba_state );
+//	skip_read( in, 6*735 + 2*735 );
+//
+//	// Copy APU regs
+//	static int const regs_to_copy [] = {
+//		NR10, NR11, NR12, NR13, NR14,
+//		      NR21, NR22, NR23, NR24,
+//		NR30, NR31, NR32, NR33, NR34,
+//		      NR41, NR42, NR43, NR44,
+//		NR50, NR51, NR52, -1
+//	};
+//
+//	ioMem [NR52] |= 0x80; // old sound played even when this wasn't set (power on)
+//
+//	for ( int i = 0; regs_to_copy [i] >= 0; i++ )
+//		state.apu.regs [gba_to_gb_sound( regs_to_copy [i] ) - 0xFF10] = ioMem [regs_to_copy [i]];
+//
+//	// Copy wave RAM to both banks
+//	memcpy( &state.apu.regs [0x20], &ioMem [0x90], 0x10 );
+//	memcpy( &state.apu.regs [0x30], &ioMem [0x90], 0x10 );
+//
+//	// Read both banks of wave RAM if available
+//	if ( version >= SAVE_GAME_VERSION_3 )
+//		utilReadData( in, old_gba_state2 );
+//
+//	// Restore PCM
+//	pcm [0].dac = state.soundDSAValue;
+//	pcm [1].dac = state.soundDSBValue;
+//
+//	(void) utilReadInt( in ); // ignore quality
+//}
+//#endif
 
 #include <stdio.h>
 
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
 void soundReadGame(const u8*& in, int version )
-#else
-void soundReadGame( gzFile in, int version )
-#endif
+//#else
+//void soundReadGame( gzFile in, int version )
+//#endif
 {
 	// Prepare APU and default state
 	reset_apu();
 	gb_apu->save_state( &state.apu );
 
 	if ( version > SAVE_GAME_VERSION_9 )
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
 		utilReadDataMem( in, gba_state );
-#else
-		utilReadData( in, gba_state );
-	else
-		soundReadGameOld( in, version );
-#endif
+//#else
+//		utilReadData( in, gba_state );
+//	else
+//		soundReadGameOld( in, version );
+//#endif
 
 	gb_apu->load_state( state.apu );
 	write_SGCNT0_H( READ16LE( &ioMem [SGCNT0_H] ) & 0x770F );

@@ -4,6 +4,7 @@
 #include "../common/Port.h"
 #include "../Util.h"
 #include "../NLS.h"
+#include "../common/ConfigManager.h"
 
 #include <time.h>
 #include <memory.h>
@@ -348,7 +349,7 @@ void rtcReset()
 	SetGBATime();
 }
 
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
 void rtcSaveGame(u8* &data)
 {
 	utilWriteMem(data, &rtcClockData, sizeof(rtcClockData));
@@ -358,14 +359,14 @@ void rtcReadGame(const u8* &data)
 {
 	utilReadMem(&rtcClockData, data, sizeof(rtcClockData));
 }
-#else
-void rtcSaveGame(gzFile gzFile)
-{
-	utilGzWrite(gzFile, &rtcClockData, sizeof(rtcClockData));
-}
-
-void rtcReadGame(gzFile gzFile)
-{
-	utilGzRead(gzFile, &rtcClockData, sizeof(rtcClockData));
-}
-#endif
+//#else
+//void rtcSaveGame(gzFile gzFile)
+//{
+//	utilGzWrite(gzFile, &rtcClockData, sizeof(rtcClockData));
+//}
+//
+//void rtcReadGame(gzFile gzFile)
+//{
+//	utilGzRead(gzFile, &rtcClockData, sizeof(rtcClockData));
+//}
+//#endif

@@ -7,6 +7,8 @@
 #include "Sram.h"
 #include "../Util.h"
 
+#include <emscripten.h>
+
 #define FLASH_READ_ARRAY         0
 #define FLASH_CMD_1              1
 #define FLASH_CMD_2              2
@@ -18,12 +20,12 @@
 #define FLASH_PROGRAM            8
 #define FLASH_SETBANK            9
 
-#ifdef __LIBRETRO__
-extern uint8_t libretro_save_buf[0x20000 + 0x2000];
-uint8_t *flashSaveMemory = libretro_save_buf;
-#else
+//#ifdef __LIBRETRO__
+//extern uint8_t libretro_save_buf[0x20000 + 0x2000];
+//uint8_t *flashSaveMemory = libretro_save_buf;
+//#else
 uint8_t flashSaveMemory[FLASH_128K_SZ];
-#endif
+//#endif
 
 int flashState = FLASH_READ_ARRAY;
 int flashReadState = FLASH_READ_ARRAY;
@@ -58,11 +60,11 @@ static variable_desc flashSaveData3[] = {
 
 void flashInit()
 {
-#ifdef __LIBRETRO__
-	memset(flashSaveMemory, 0xff, 0x20000);
-#else
+//#ifdef __LIBRETRO__
+//	memset(flashSaveMemory, 0xff, 0x20000);
+//#else
 	memset(flashSaveMemory, 0xff, sizeof(flashSaveMemory));
-#endif
+//#endif
 }
 
 void flashReset()
@@ -72,7 +74,7 @@ void flashReset()
   flashBank = 0;
 }
 
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
 void flashSaveGame(uint8_t *& data)
 {
    utilWriteDataMem(data, flashSaveData3);
@@ -82,37 +84,37 @@ void flashReadGame(const uint8_t *& data, int)
 {
    utilReadDataMem(data, flashSaveData3);
 }
-#else
-void flashSaveGame(gzFile gzFile)
-{
-  utilWriteData(gzFile, flashSaveData3);
-}
-
-void flashReadGame(gzFile gzFile, int version)
-{
-  if(version < SAVE_GAME_VERSION_5)
-    utilReadData(gzFile, flashSaveData);
-  else if(version < SAVE_GAME_VERSION_7) {
-    utilReadData(gzFile, flashSaveData2);
-    flashBank = 0;
-    flashSetSize(flashSize);
-  } else {
-    utilReadData(gzFile, flashSaveData3);
-  }
-}
-
-void flashReadGameSkip(gzFile gzFile, int version)
-{
-  // skip the flash data in a save game
-  if(version < SAVE_GAME_VERSION_5)
-    utilReadDataSkip(gzFile, flashSaveData);
-  else if(version < SAVE_GAME_VERSION_7) {
-    utilReadDataSkip(gzFile, flashSaveData2);
-  } else {
-    utilReadDataSkip(gzFile, flashSaveData3);
-  }
-}
-#endif
+//#else
+//void flashSaveGame(gzFile gzFile)
+//{
+//  utilWriteData(gzFile, flashSaveData3);
+//}
+//
+//void flashReadGame(gzFile gzFile, int version)
+//{
+//  if(version < SAVE_GAME_VERSION_5)
+//    utilReadData(gzFile, flashSaveData);
+//  else if(version < SAVE_GAME_VERSION_7) {
+//    utilReadData(gzFile, flashSaveData2);
+//    flashBank = 0;
+//    flashSetSize(flashSize);
+//  } else {
+//    utilReadData(gzFile, flashSaveData3);
+//  }
+//}
+//
+//void flashReadGameSkip(gzFile gzFile, int version)
+//{
+//  // skip the flash data in a save game
+//  if(version < SAVE_GAME_VERSION_5)
+//    utilReadDataSkip(gzFile, flashSaveData);
+//  else if(version < SAVE_GAME_VERSION_7) {
+//    utilReadDataSkip(gzFile, flashSaveData2);
+//  } else {
+//    utilReadDataSkip(gzFile, flashSaveData3);
+//  }
+//}
+//#endif
 
 
 void flashSetSize(int size)
@@ -161,6 +163,7 @@ u8 flashRead(u32 address)
 
 void flashSaveDecide(u32 address, u8 byte)
 {
+  EM_ASM(debugger;);
   if (saveType == 1)
     return;
 

@@ -1,9 +1,9 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 #include "common/Types.h"
-#ifndef __LIBRETRO__
-#include <zlib.h>
-#endif
+//#ifndef __LIBRETRO__
+//#include <zlib.h>
+//#endif
 
 #define winlog log
 
@@ -20,17 +20,17 @@ struct EmulatedSystem {
    bool (*emuReadBattery)(const char *);
    // write battery file
    bool (*emuWriteBattery)(const char *);
-#ifdef __LIBRETRO__
+//#ifdef __LIBRETRO__
    // load state
    bool (*emuReadState)(const u8*, unsigned);
    // load state
    unsigned (*emuWriteState)(u8*, unsigned);
-#else
-   // load state
-   bool (*emuReadState)(const char *);
-   // save state
-   bool (*emuWriteState)(const char *);
-#endif
+//#else
+//   // load state
+//   bool (*emuReadState)(const char *);
+//   // save state
+//   bool (*emuWriteState)(const char *);
+//#endif
   // load memory state (rewind)
   bool (*emuReadMemState)(char *, int);
   // write memory state (rewind)
