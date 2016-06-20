@@ -1,13 +1,19 @@
 # browsergba.com
 
-This is an emscripten port of https://github.com/visualboyadvance-m/visualboyadvance-m. The following features
-are supported:
- * Video Output (via a WebGL textured quad)
- * Audio Output (via HTML5 audio API)
- * Savegames (via localStorage)
- * Keyboard Input
+This is an emscripten port of https://github.com/visualboyadvance-m/visualboyadvance-m. It's not using
+the emscripten SDL port, it's using custom bindings to get pixel/audio/input/savegame data into & out
+of the emulator.
 
-This is not a GitHub fork because I have no intention of PRing it.
+Eventually, it should work on all browsers that support WebGL. Currently, it also requires HTML5 Audio
+and localStorage (so IE11 and Safari private won't work). Input doesn't work on IE currently.
+
+This is not a GitHub fork because I don't intend to PR it.
+
+# Build
+
+Install nodejs and emscripten. Ensure that `node` and `emcc` are on your path.
+
+Run `node build`. Open `index.html`.
 
 ## TODOs
  * Improve audio sync
