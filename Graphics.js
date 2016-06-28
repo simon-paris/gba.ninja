@@ -2,7 +2,7 @@
     "use strict";
     
     
-    let util = {
+    var util = {
         compileShader: function (gl, shaderSource, shaderType) {
             var shader = gl.createShader(shaderType);
             gl.shaderSource(shader, shaderSource);
@@ -49,9 +49,9 @@
         },
         
         createTexture: function (gl, size) {
-            let texture = gl.createTexture();
+            var texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
-            let tempPixels = new Uint16Array(size * size);
+            var tempPixels = new Uint16Array(size * size);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_SHORT_5_5_5_1, tempPixels);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -65,7 +65,7 @@
         },
         
         createFullscreenQuad: function  (gl, lower, upper) {
-            let fullscreenQuadBuffer = gl.createBuffer();
+            var fullscreenQuadBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, fullscreenQuadBuffer);
             gl.bufferData(
                 gl.ARRAY_BUFFER,
@@ -89,15 +89,16 @@
     
     
     
-    let GBA_WIDTH = 240;
-    let GBA_HEIGHT = 160;
-    let TEXTURE_SIZE = 256;
+    var GBA_WIDTH = 240;
+    var GBA_HEIGHT = 160;
+    var TEXTURE_SIZE = 256;
     
-    function Graphics (emscriptenModule, canvas) {
+    function VBAGraphics (emscriptenModule, canvas) {
         this.emscriptenModule = emscriptenModule;
         this.canvas = canvas;
         
         this.totalFrames = 0;
+        this.lastFrameTime = (window.performance.now() / 1000);
         
         // Webgl assets
         this.gl = null;
@@ -112,11 +113,14 @@
         this.pixels = new Uint16Array(GBA_WIDTH * GBA_HEIGHT);
         
     }
-    Graphics.prototype = Object.create(Object.prototype);
-    Graphics.prototype.constructor = Graphics;
-
+    VBAGraphics.prototype = Object.create(Object.prototype);
+    VBAGraphics.prototype.constructor = VBAGraphics;
     
-    Graphics.prototype.initScreen = function () {
+    VBAGraphics.prototype.getTimeTilNextEvent = function () {
+        return Math.min(1 / 60, ((window.performance.now() / 1000) - this.lastFrameTime));
+    };
+    
+    VBAGraphics.prototype.initScreen = function () {
 
         // Get webgl
         this.gl = this.canvas.getContext("webgl", {alpha: false}) ||
@@ -134,10 +138,13 @@
 
 
 
-    Graphics.prototype.drawGBAFrame = function  (gbaPointer8) {
-        let gbaPointer16 = gbaPointer8 / 2;
-        let gbaHeap16 = this.emscriptenModule.HEAP16;
-        for (let i = 0; i < this.pixels.length; i++) {
+    VBAGraphics.prototype.drawGBAFrame = function  (gbaPointer8) {
+        
+        this.lastFrameTime = (window.performance.now() / 1000);
+        
+        var gbaPointer16 = gbaPointer8 / 2;
+        var gbaHeap16 = this.emscriptenModule.HEAP16;
+        for (var i = 0; i < this.pixels.length; i++) {
             this.pixels[i] = gbaHeap16[gbaPointer16 + i];
         }
         util.updateTexture(this.gl, this.texture, GBA_WIDTH, GBA_HEIGHT, this.pixels);
@@ -145,7 +152,7 @@
         this.totalFrames++;
     };
 
-    Graphics.prototype.drawFrame = function  () {
+    VBAGraphics.prototype.drawFrame = function  () {
         
         // Bind shader
         this.gl.useProgram(this.shaderProgram);
@@ -167,23 +174,23 @@
 
 
 
-    Graphics.prototype.onResize = function (/*windowWidth, windowHeight*/) {
-        let canvas = this.canvas;
+    VBAGraphics.prototype.onResize = function (/*windowWidth, windowHeight*/) {
+        var canvas = this.canvas;
 //        canvas.style.top = canvas.style.bottom = canvas.style.left = canvas.style.right = "0";
 //        canvas.style.width = "";
 //        canvas.style.height = "";
 //
-//        let aspect = GBA_WIDTH / GBA_HEIGHT;
+//        var aspect = GBA_WIDTH / GBA_HEIGHT;
 //
 //        if (windowWidth < windowHeight * aspect) {
 //            // Change width
-//            let offset = (windowHeight - (windowWidth / aspect)) / 2;
+//            var offset = (windowHeight - (windowWidth / aspect)) / 2;
 //            canvas.style.top = canvas.style.bottom = offset + "px";
 //            canvas.style.width = "100%";
 //        }
 //        if (windowHeight < windowWidth / aspect) {
 //            // Change height
-//            let offset = (windowWidth - (windowHeight * aspect)) / 2;
+//            var offset = (windowWidth - (windowHeight * aspect)) / 2;
 //            canvas.style.left = canvas.style.right = offset + "px";
 //            canvas.style.height = "100%";
 //        }
@@ -193,7 +200,7 @@
     };
     
     
-    window.Graphics = Graphics;
+    window.VBAGraphics = VBAGraphics;
 
 
 }());

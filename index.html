@@ -46,26 +46,17 @@
         
         <script>
             
-            
-            var KEY_BUTTON_A = "KeyZ";
-            var KEY_BUTTON_B = "KeyX";
-            var KEY_BUTTON_SELECT = "Escape";
-            var KEY_BUTTON_START = "Enter";
-            var KEY_RIGHT = "ArrowRight";
-            var KEY_LEFT = "ArrowLeft";
-            var KEY_UP = "ArrowUp";
-            var KEY_DOWN = "ArrowDown";
-            var KEY_BUTTON_R = "Control";
-            var KEY_BUTTON_L = "Shift";
-            var downKeys = {};
-            window.addEventListener("keydown", function (e) {
-                downKeys[e.code] = 1;
-            });
-            window.addEventListener("keyup", function (e) {
-                downKeys[e.code] = 0;
-            });
-            
-            
+            window.performance = window.performance || {};
+            performance.now = (function () {
+                return performance.now    ||
+                    performance.mozNow    ||
+                    performance.msNow     ||
+                    performance.oNow      ||
+                    performance.webkitNow ||
+                    function() {
+                        return new Date().getTime(); 
+                    };
+            })();
             
             var readyHandlers = {};
             var onReady = function (what, fn) {
@@ -112,26 +103,7 @@
                 };
                 
             };
-            
-            
             loadCartridge("./firered.gba");
-            
-            
-            
-            var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            var audioChannels = 2;
-            var audioSampleCount = audioCtx.sampleRate * 4;
-            var audioBuffers = audioCtx.createBuffer(2, audioSampleCount, 44100);
-            var audioProgressPointer = 0;
-            var audioSamplesPlayed = 0;
-            var audioSamplesRecieved = 0;
-            var audioLastWrite = 0;
-            var audioLastLag = 0;
-            var audioStartTime = 0;
-            var audioSource = null;
-            
-            
-            
             
             
             window.Module = {
@@ -159,80 +131,48 @@
             });
             
             
-            let safeSaveTimeout = null;
-            let unsafeSaveTimeout = null;
-            let unsafeSaveBuffer = null;
-            
-            let localStoragePrefix = "VBAsave_";
             
 
             var boot = function () {
                 
                 document.body.innerHTML = '<canvas width="240" height="160"></canvas>';
 
-                window.graphics = new Graphics(window.Module, document.querySelector("canvas"));
-                window.graphics.initScreen();
-                window.graphics.drawFrame();
-
-                var onResize = function () {
-                    window.graphics.onResize(window.innerWidth, window.innerHeight);
-                };
+                window.vbaGraphics = new VBAGraphics(window.Module, document.querySelector("canvas"));
+                window.vbaGraphics.initScreen();
+                window.vbaGraphics.drawFrame();
+                var onResize = window.vbaGraphics.onResize.bind(window.vbaGraphics, window.innerWidth, window.innerHeight);
                 window.onresize = onResize;
                 onResize();
+                
+                window.vbaSound = new VBASound(window.Module);
+                window.vbaSaves = new VBASaves(window.Module);
+                window.vbaInput = new VBAInput(window.Module);
 
                 var GBA_CYCLES_PER_SECOND = 16777216;
 
                 VBA_start();
 
                 window.isRunning = true;
+                let lastFrameTime = Date.now();
                 function eachFrame () {
+                    let currentTime = Date.now();
+                    let deltaTime = currentTime - lastFrameTime;
+                    lastFrameTime = currentTime;
                     
                     if (!isRunning) {
                         return;
                     }
                     
-                    // Dynamic frametime
-//                    let frameNum = graphics.totalFrames;
-//                    while (frameNum === graphics.totalFrames) {
-//                        VBA_do_cycles(10000);
-//                    }
-                    
                     // Static Framerate
-                    VBA_do_cycles(280896);
+//                    var cycles = Math.floor(Math.min(GBA_CYCLES_PER_SECOND / 60,
+//                                                     (GBA_CYCLES_PER_SECOND / 1000) * deltaTime) * 1.02);
+                    var timeTilNextEvent = Math.min(vbaGraphics.getTimeTilNextEvent(), vbaSound.getTimeTilNextEvent());
+                    var cycles = Math.floor(timeTilNextEvent * (GBA_CYCLES_PER_SECOND));
+                    VBA_do_cycles(cycles);
                     
-                    if (VBA_get_systemSaveUpdateCounter()) {
-                        
-                        // Copy the save to a temporary buffer if it's
-                        // recently updated.
-                        if (!unsafeSaveTimeout) {
-                            unsafeSaveTimeout = setTimeout(function () {
-                                unsafeSaveTimeout = null;
-                                if (VBA_get_emulating()) {
-                                    console.log("writing battery file");
-                                    VBA_emuWriteBattery();
-                                    VBA_reset_systemSaveUpdateCounter();
-                                }
-                            }, 32);
-                        }
-                        
-                        // Commit the save to localstorage if it hasn't been
-                        // changed in a while.
-                        clearTimeout(safeSaveTimeout);
-                        safeSaveTimeout = null;
-                        if (unsafeSaveBuffer) {
-                            safeSaveTimeout = setTimeout(function () {
-                                if (VBA_get_emulating()) {
-                                    let base64 = btoa(String.fromCharCode.apply(null, unsafeSaveBuffer));
-                                    localStorage[localStoragePrefix + VBAInterface.getRomCode()] = base64;
-                                    unsafeSaveBuffer = null;
-                                }
-                            }, 70);
-                        }
-                        
-                    }
+                    vbaSaves.checkSaves();
                     
-                    requestAnimationFrame(eachFrame);
-                    
+                    setTimeout(eachFrame, 0);
                 };
                 eachFrame();
 
@@ -240,7 +180,7 @@
             };
             
             
-            // ------ VBA Entry Points -------
+            // ------ VBA ENTRY POINTS -------
             
             var VBA_get_emulating = function () {
                 return Module.ccall("VBA_get_emulating", "int", [], []);
@@ -325,7 +265,7 @@
             
             
             
-            // ------- VBA Callbacks & Utility Functions --------
+            // ------- VBA EXIT POINTS --------
             
             var VBAInterface = {};
             
@@ -334,7 +274,7 @@
             };
             
             VBAInterface.getAudioSampleRate = function () {
-                return audioBuffers.sampleRate;
+                return window.vbaSound.getSampleRate();
             };
             
             VBAInterface.getRomSize = function (startPointer8) {
@@ -350,245 +290,47 @@
             };
             
             VBAInterface.renderFrame = function (pixPointer8) {
-                window.graphics.drawGBAFrame(pixPointer8);
+                window.vbaGraphics.drawGBAFrame(pixPointer8);
             };
             
             VBAInterface.initSound = function () {
-                
             };
             
             VBAInterface.pauseSound = function () {
             };
             
             VBAInterface.resetSound = function () {
-                audioStartTime = Date.now();
-                audioSamplesRecieved = 0;
-                audioSamplesPlayed = 0;
-                audioLastWrite = Date.now();
+                window.vbaSound.resetSound();
             };
             
             VBAInterface.resumeSound = function () {
             };
             
             VBAInterface.writeSound = function (pointer8, length16) {
-                
-                if (pointer8 % 2 === 1) {
-                    console.log("Audio pointer must be 16 bit aligned.");
-                    return;
-                }
-                if (length16 % 2 === 1) {
-                    console.log("Number of audio samples must be even.");
-                    return;
-                }
-                
-                let sampleRate = audioBuffers.sampleRate;
-                audioSamplesPlayed += (Date.now() - audioLastWrite) * (sampleRate / 1000);
-                audioSamplesRecieved += length16 / 2;
-                audioLastWrite = Date.now();
-                audioLastLag = audioSamplesPlayed - audioSamplesRecieved;
-                var lag = audioSamplesPlayed - audioSamplesRecieved;
-                if (!audioSource) {
-                    console.log("Audio init", Math.floor(lag));
-                    VBAInterface.writeSoundToNewBuffer(pointer8, length16);
-                } else {
-                    
-//                    if (lag > 4000) {
-//                        console.log("audio resnc (+)", Math.floor(lag));
-//                        VBAInterface.writeSoundToNewBuffer(pointer8, length16);
-//                    } else if (lag < -0) {
-//                        console.log("audio resnc (-)", Math.floor(lag));
-//                        VBAInterface.writeSoundToNewBuffer(pointer8, length16);
-//                    } else {
-//                        VBAInterface.writeSoundToExistingBuffer(pointer8, length16);
-//                    }
-                    
-                    if (lag > 2000) {
-                        VBAInterface.writeSilence(pointer8, 1000);
-                        console.log("audio ffwd", Math.floor(lag));
-                    } else if (lag < -2000) {
-                        VBAInterface.rewindSound(1000);
-                        console.log("audio rewind", Math.floor(lag));
-                    } else {
-                    }
-                    VBAInterface.writeSoundToExistingBuffer(pointer8, length16);
-                    
-                }
-            };
-            
-            VBAInterface.writeSoundToNewBuffer = function (pointer8, length16) {
-                
-                let oldAudioSource = audioSource;
-                
-                audioSource = audioCtx.createBufferSource();
-                audioSource.playbackRate.value = 1;
-                audioSource.loop = true;
-                audioSource.buffer = audioBuffers;
-                audioSource.connect(audioCtx.destination);
-                for (var channel = 0; channel < audioChannels; channel++) {
-                    var nowBuffering = audioBuffers.getChannelData(channel);
-                    for (var i = 0; i < audioSampleCount; i++) {
-                        nowBuffering[i] = 0;
-                    }
-                }
-                
-                if (oldAudioSource) {
-                    oldAudioSource.stop(audioCtx.currentTime + 0.1);
-                }
-                audioSource.start(audioCtx.currentTime + 0.1);
-                
-                
-                audioStartTime = Date.now();
-                audioSamplesRecieved = 0;
-                audioSamplesPlayed = 0;
-                audioLastWrite = Date.now();
-
-                
-                
-                VBAInterface.writeSoundToExistingBuffer(pointer8, length16);
-            };
-            
-            VBAInterface.writeSoundToExistingBuffer = function (pointer8, length16) {
-                
-                let pointer16 = pointer8 >> 1;
-                let heap16 = Module.HEAP16;
-                let audioChannelBuffers = [];
-                for (let i = 0; i < audioChannels; i++) {
-                    audioChannelBuffers.push(audioBuffers.getChannelData(i));
-                }
-                
-                if (audioChannels === 2) {
-                    for (var i = 0; i < length16; i += 2) {
-                        for (var channel = 0; channel < audioChannels; channel++) {
-                            audioChannelBuffers[channel][audioProgressPointer] = heap16[pointer16 + i + channel] / 0x4000;
-                        }
-                        audioProgressPointer++;
-                        if (audioProgressPointer >= audioSampleCount) {
-                            audioProgressPointer = 0;
-                        }
-                    }
-                    
-                } else {
-                    
-                    for (var i = 0; i < length16; i += 2) {
-                        for (var channel = 0; channel < audioChannels; channel++) {
-                            audioChannelBuffers[channel][audioProgressPointer] = heap16[pointer16 + i] / 0x4000;
-                        }
-                        audioProgressPointer++;
-                        if (audioProgressPointer >= audioSampleCount) {
-                            audioProgressPointer = 0;
-                        }
-                    }
-                    
-                }
-                
-            };
-            
-            VBAInterface.writeSilence = function (pointer8, numSamples) {
-                
-                audioSamplesRecieved += numSamples;
-                let audioChannelBuffers = [];
-                for (let i = 0; i < audioChannels; i++) {
-                    audioChannelBuffers.push(audioBuffers.getChannelData(i));
-                }
-                
-                for (var i = 0; i < numSamples; i += 1) {
-                    for (var channel = 0; channel < audioChannels; channel++) {
-                        audioChannelBuffers[channel][audioProgressPointer] = 0;
-                    }
-                    audioProgressPointer++;
-                    if (audioProgressPointer >= audioSampleCount) {
-                        audioProgressPointer = 0;
-                    }
-                }
-                
-            };
-            
-            VBAInterface.rewindSound = function (numSamples) {
-                
-//                audioSamplesRecieved -= numSamples;
-                audioProgressPointer -= numSamples;
-                while (audioProgressPointer <= 0) {
-                    audioProgressPointer += audioSampleCount;
-                }
-                
-            };
-            
-            VBAInterface.getSave = function () {
-                let base64 = localStorage[localStoragePrefix + VBAInterface.getRomCode()];
-                if (!base64) {
-                    return new Uint8Array(0);
-                }
-                return new Uint8Array(atob(base64).split("").map(function(c) {
-                    return c.charCodeAt(0);
-                }));
+                return window.vbaSound.writeSound(pointer8, length16);
             };
             
             VBAInterface.getSaveSize = function () {
-                return this.getSave().byteLength;
+                return vbaSaves.getSaveSize();
             };
             
             VBAInterface.commitFlash = VBAInterface.commitEeprom = function (pointer8, size) {
-                let heapu8 = Module.HEAPU8;
-                let bufu8 = new Uint8Array(size);
-                for (let i = 0; i < size; i++) {
-                    bufu8[i] = heapu8[pointer8 + i];
-                }
-                unsafeSaveBuffer = bufu8;
-            };
-            
-            VBAInterface.getRomCode = function () {
-                return Module.Pointer_stringify(VBA_get_rom() + 0xAC).substr(0, 4);
+                return vbaSaves.softCommit(pointer8, size);
             };
             
             VBAInterface.restoreSaveMemory = function (pointer8, targetBufferSize) {
-                let save = this.getSave();
-                let heap8 = Module.HEAPU8;
-                
-                if (save.byteLength !== targetBufferSize) {
-                    throw new Error("Incompatible save size");
-                }
-                
-                for (let i = 0; i < targetBufferSize; i++) {
-                    heap8[pointer8 + i] = save[i];
-                }
-                
+                return vbaSaves.restoreSaveMemory(pointer8, targetBufferSize);
             };
             
-            VBAInterface.getJoypad = function () {
-                var res = 0;
-
-                if (downKeys[KEY_BUTTON_A])
-                    res |= 1;
-                if (downKeys[KEY_BUTTON_B])
-                    res |= 2;
-                if (downKeys[KEY_BUTTON_SELECT])
-                    res |= 4;
-                if (downKeys[KEY_BUTTON_START])
-                    res |= 8;
-                if (downKeys[KEY_RIGHT])
-                    res |= 16;
-                if (downKeys[KEY_LEFT])
-                    res |= 32;
-                if (downKeys[KEY_UP])
-                    res |= 64;
-                if (downKeys[KEY_DOWN])
-                    res |= 128;
-                if (downKeys[KEY_BUTTON_R])
-                    res |= 256;
-                if (downKeys[KEY_BUTTON_L])
-                    res |= 512;
-
-                // disallow L+R or U+D of being pressed at the same time
-                if ((res & 48) == 48)
-                    res &= ~16;
-                if ((res & 192) == 192)
-                    res &= ~128;
-                
-                return res;
+            VBAInterface.getJoypad = function (joypadNum) {
+                return vbaInput.getJoypad(joypadNum);
             };
             
         </script>
         <script src="./Graphics.js"></script>
+        <script src="./Sound.js"></script>
+        <script src="./Saves.js"></script>
+        <script src="./Input.js"></script>
         <script src="./emu.js"></script>
     </head>
     <body>
