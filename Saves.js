@@ -19,8 +19,10 @@
     };
     
     
-    VBASaves.prototype.getSave = function () {
-        let base64 = localStorage[this.localStoragePrefix + this.getRomCode()];
+    VBASaves.prototype.getSave = function (romCode) {
+        // If no rom code supplied, use the currently loaded game
+        romCode = romCode || this.getRomCode();
+        let base64 = localStorage[this.localStoragePrefix + romCode];
         if (!base64) {
             return new Uint8Array(0);
         }
@@ -40,6 +42,11 @@
             bufu8[i] = heapu8[pointer8 + i];
         }
         this.unsafeSaveBuffer = bufu8;
+    };
+
+    VBASaves.prototype.hardCommit = function (romCode, byteArray) {
+        let base64 = btoa(String.fromCharCode.apply(null, byteArray));
+        localStorage[this.localStoragePrefix + romCode] = base64;
     };
 
     VBASaves.prototype.restoreSaveMemory = function (pointer8, targetBufferSize) {
@@ -79,14 +86,36 @@
             if (this.unsafeSaveBuffer) {
                 this.safeSaveTimeout = setTimeout(function () {
                     if (this.VBA_get_emulating()) {
-                        let base64 = btoa(String.fromCharCode.apply(null, this.unsafeSaveBuffer));
-                        localStorage[this.localStoragePrefix + this.getRomCode()] = base64;
+                        this.hardCommit(this.getRomCode(), this.unsafeSaveBuffer);
                         this.unsafeSaveBuffer = null;
                     }
                 }, 70);
             }
 
         }
+    };
+    
+    VBASaves.prototype.exportSave = function (romCode) {
+        var blob = new Blob([this.getSave(romCode)], {contentType: "application/octet-stream"});
+        window.saveAs(blob, "GBA Save " + romCode + ".sav", true);
+    };
+    
+    
+    VBASaves.prototype.onFileImportInputChanged = function (e) {
+        let binaryFile = e.currentTarget.files[0];
+        var fr = new FileReader();
+        if (FileReader && binaryFile) {
+            fr.readAsArrayBuffer(binaryFile);
+            fr.onload = function () {
+                let romCode = "????";
+                this.importSave(romCode, fr.result);
+            };
+        }
+    };
+    
+    
+    VBASaves.prototype.importSave = function (romCode, byteArray) {
+        this.hardCommit(romCode, byteArray);
     };
     
     
