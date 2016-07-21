@@ -38,7 +38,8 @@ SoundDriver * soundDriver = 0;
 
 extern bool stopState;      // TODO: silence sound when true
 
-int const SOUND_CLOCK_TICKS_ = 167772; // 1/100 second
+//int const SOUND_CLOCK_TICKS_ = 167772; // 1/100 second
+int const SOUND_CLOCK_TICKS_ = 16777; // 1/100 second
 
 static u16   soundFinalWave [1600];
 long  soundSampleRate    = 44100;

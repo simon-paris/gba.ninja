@@ -70,7 +70,6 @@
                 readyHandlers[what].push(fn);
             };
             var triggerReady = function (what) {
-                console.log(what + " is ready");
                 if (readyHandlers[what]) {
                     readyHandlers[what].forEach(function (v) {
                         v();
@@ -127,16 +126,17 @@
             
             
             onReady("everything", function () {
-                boot();
+                window.init();
+                window.start();
             });
             
             
             
 
-            var boot = function () {
+            window.init = function () {
                 
-                document.body.innerHTML = '<canvas width="240" height="160"></canvas>';
-
+                document.querySelector(".pixels").innerHTML = '<input type="file" onchange="vbaSaves.onFileImportInputChanged(event)"/><canvas width="240" height="160"></canvas>';
+                
                 window.vbaGraphics = new VBAGraphics(window.Module, document.querySelector("canvas"));
                 window.vbaGraphics.initScreen();
                 window.vbaGraphics.drawFrame();
@@ -147,11 +147,21 @@
                 window.vbaSound = new VBASound(window.Module);
                 window.vbaSaves = new VBASaves(window.Module);
                 window.vbaInput = new VBAInput(window.Module);
+                
+                
 
-                var GBA_CYCLES_PER_SECOND = 16777216;
-
+            };
+            
+            
+            window.start = function () {
+                if (window.isRunning) {
+                    throw new Error("Already started");
+                }
+                
                 VBA_start();
-
+                document.querySelector(".pixels").style.display = "block";
+                
+                var GBA_CYCLES_PER_SECOND = 16777216;
                 window.isRunning = true;
                 let lastFrameTime = Date.now();
                 function eachFrame () {
@@ -159,25 +169,33 @@
                     let deltaTime = currentTime - lastFrameTime;
                     lastFrameTime = currentTime;
                     
-                    if (!isRunning) {
-                        return;
+                    if (isRunning) {
+                        vbaSaves.checkSaves();
+                        
+                        if (vbaSound.getNumExtraSamples() < 10000) {
+                            // Static Framerate
+                            var cycles = Math.min(
+                                GBA_CYCLES_PER_SECOND / 60,
+                                Math.floor(GBA_CYCLES_PER_SECOND / (1000 / deltaTime))
+                            );
+                            VBA_do_cycles(cycles);
+                            requestAnimationFrame(eachFrame, 0);
+                        } else {
+                            setTimeout(eachFrame);
+                        }
+                    } else {
+                        VBA_stop();
+                        document.querySelector(".pixels").style.display = "none";
                     }
-                    
-                    // Static Framerate
-//                    var cycles = Math.floor(Math.min(GBA_CYCLES_PER_SECOND / 60,
-//                                                     (GBA_CYCLES_PER_SECOND / 1000) * deltaTime) * 1.02);
-                    var timeTilNextEvent = Math.min(vbaGraphics.getTimeTilNextEvent(), vbaSound.getTimeTilNextEvent());
-                    var cycles = Math.floor(timeTilNextEvent * (GBA_CYCLES_PER_SECOND));
-                    VBA_do_cycles(cycles);
-                    
-                    vbaSaves.checkSaves();
-                    
-                    setTimeout(eachFrame, 0);
                 };
                 eachFrame();
 
-
             };
+            
+            window.scheduleStop = function () {
+                window.isRunning = false;
+            };
+            
             
             
             // ------ VBA ENTRY POINTS -------
@@ -335,6 +353,7 @@
         <script src="./emu.js"></script>
     </head>
     <body>
+        <div class="pixels"></div>
     </body>
 </html>
 

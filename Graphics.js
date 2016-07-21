@@ -116,10 +116,6 @@
     VBAGraphics.prototype = Object.create(Object.prototype);
     VBAGraphics.prototype.constructor = VBAGraphics;
     
-    VBAGraphics.prototype.getTimeTilNextEvent = function () {
-        return Math.min(1 / 60, ((window.performance.now() / 1000) - this.lastFrameTime));
-    };
-    
     VBAGraphics.prototype.initScreen = function () {
 
         // Get webgl

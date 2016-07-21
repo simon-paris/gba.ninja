@@ -1,217 +1,126 @@
 (function () {
     "use strict";
     
+    if (window.AudioContext) {
     
-    function VBASound(emscriptenModule) {
+        function VBASound(emscriptenModule) {
+
+            this.emscriptenModule = emscriptenModule;
+
+            var AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.audioCtx = new AudioContext();
+            this.audioChannels = 2;
+            this.audioScriptNode = this.audioCtx.createScriptProcessor(1024, 2);
+            this.audioScriptNode.onaudioprocess = this.handleAudioEvent.bind(this)
+            this.audioScriptNode.connect(this.audioCtx.destination);
+            this.audioSpareSamplesRingBuffer = new Int16Array(1024 * 16);
+            this.audioSpareWritePtr = 0;
+            this.audioSpareReadPtr = 0;
+
+        }
+        VBASound.prototype = Object.create(Object.prototype);
+        VBASound.prototype.constructor = VBASound;
+
+        VBASound.prototype.getSampleRate = function () {
+            return this.audioCtx.sampleRate;
+        };
+
+        VBASound.prototype.currentAudioTime = function () {
+            return this.audioCtx.currentTime;
+        };
+
+        VBASound.prototype.getNumExtraSamples = function () {
+            let samples = this.audioSpareWritePtr - this.audioSpareReadPtr;
+            return samples >= 0 ? samples : (samples + this.audioSpareSamplesRingBuffer.length);
+        };
+
+        VBASound.prototype.resetSound = function () {
+        };
+
+        VBASound.prototype.writeSound = function (pointer8, length16) {
+
+            if (pointer8 % 2 === 1) {
+                console.error("Audio pointer must be 16 bit aligned.");
+                return;
+            }
+            if (length16 % 2 !== 0) {
+                console.error("Number of audio samples must be even.");
+                return;
+            }
+            var pointer16 = pointer8 >> 1;
+            var heap16 = this.emscriptenModule.HEAP16;
+            var i;
+
+            for (i = 0; i < length16; i++) {
+                this.audioSpareSamplesRingBuffer[this.audioSpareWritePtr] = heap16[pointer16 + i];
+                this.audioSpareWritePtr++;
+                if (this.audioSpareWritePtr >= this.audioSpareSamplesRingBuffer.length) {
+                    this.audioSpareWritePtr = 0;
+                }
+            }
+
+        };
+
+        VBASound.prototype.handleAudioEvent = function (event) {
+            var audioBuffers = [];
+            var numChannels = event.outputBuffer.numberOfChannels;
+            var requiredSamples = event.outputBuffer.length;
+            var i, channel;
+
+            for (i = 0; i < numChannels; i++) {
+                audioBuffers.push(event.outputBuffer.getChannelData(i));
+            }
+
+            for (i = 0; i < requiredSamples; i++) {
+                for (channel = 0; channel < numChannels; channel++) {
+                    if (this.audioSpareReadPtr === this.audioSpareWritePtr) {
+                        audioBuffers[channel][i] = 0;
+                    } else {
+                        audioBuffers[channel][i] = this.audioSpareSamplesRingBuffer[this.audioSpareReadPtr] / 0x4000;
+                        this.audioSpareReadPtr++;
+                        if (this.audioSpareReadPtr >= this.audioSpareSamplesRingBuffer.length) {
+                            this.audioSpareReadPtr -= this.audioSpareSamplesRingBuffer.length;
+                        }
+                    }
+                }
+            }
+
+        };
+
+        window.VBASound = VBASound;
         
+    } else {
         
-        this.emscriptenModule = emscriptenModule;
-        this.lastSoundEventTime = (window.performance.now() / 1000);
+        // Implementation for browsers without audio support
+        function IE_VBASound(emscriptenModule) {
+            this.emscriptenModule = emscriptenModule;
+        }
+        IE_VBASound.prototype = Object.create(Object.prototype);
+        IE_VBASound.prototype.constructor = IE_VBASound;
+
+        IE_VBASound.prototype.getSampleRate = function () {
+            return 44100;
+        };
+
+        IE_VBASound.prototype.currentAudioTime = function () {
+            return Date.now() / 1000;
+        };
+
+        IE_VBASound.prototype.getNumExtraSamples = function () {
+            return 0;
+        };
+
+        IE_VBASound.prototype.resetSound = function () {
+        };
+
+        IE_VBASound.prototype.writeSound = function (pointer8, length16) {
+        };
+
+        IE_VBASound.prototype.handleAudioEvent = function (event) {
+        };
+
+        window.VBASound = IE_VBASound;
         
-        var AudioContext = window.AudioContext || window.webkitAudioContext;
-        this.audioCtx = new AudioContext();
-        this.audioChannels = 2;
-        this.audioSampleCount = this.audioCtx.sampleRate * 4;
-        this.audioBuffers = this.audioCtx.createBuffer(2, this.audioSampleCount, 44100);
-        this.audioProgressPointer = 0;
-        this.audioSamplesPlayed = 0;
-        this.audioSamplesRecieved = 0;
-        this.audioLastWrite = 0;
-        this.audioLastLag = 0;
-        this.audioStartTime = 0;
-        this.audioSource = null;
     }
-    VBASound.prototype = Object.create(Object.prototype);
-    VBASound.prototype.constructor = VBASound;
-    
-    VBASound.prototype.getTimeTilNextEvent = function () {
-        return Math.min(1 / 100, ((window.performance.now() / 1000) - this.lastSoundEventTime));
-    };
-    
-    VBASound.prototype.getSampleRate = function () {
-        return this.audioBuffers.sampleRate;
-    };
-    
-    VBASound.prototype.currentAudioTime = function () {
-        return this.audioCtx.currentTime;
-    };
-    
-    VBASound.prototype.resetSound = function () {
-        this.audioStartTime = this.currentAudioTime();
-        this.audioSamplesRecieved = 0;
-        this.audioSamplesPlayed = 0;
-        this.audioLastWrite = this.currentAudioTime();
-    };
-    
-    VBASound.prototype.writeSound = function (pointer8, length16) {
-
-        this.lastSoundEventTime = (window.performance.now() / 1000);
-        
-        if (pointer8 % 2 === 1) {
-            console.log("Audio pointer must be 16 bit aligned.");
-            return;
-        }
-        if (length16 % 2 === 1) {
-            console.log("Number of audio samples must be even.");
-            return;
-        }
-
-        var sampleRate = this.audioBuffers.sampleRate;
-        this.audioSamplesPlayed += (this.currentAudioTime() - this.audioLastWrite) * sampleRate;
-        this.audioSamplesRecieved += length16 / 2;
-        this.audioLastWrite = this.currentAudioTime();
-        this.audioLastLag = this.audioSamplesPlayed - this.audioSamplesRecieved;
-        var lag = this.audioSamplesPlayed - this.audioSamplesRecieved;
-        if (!this.audioSource) {
-            console.log("Audio init", Math.floor(lag));
-            this.writeSoundToNewBuffer(pointer8, length16);
-        } else {
-
-            if (lag > 2000) {
-                this.writeSilence(pointer8, 1000);
-                console.log("audio ffwd", Math.floor(lag));
-            } else if (lag < -2000) {
-                this.rewindSound(1000);
-                console.log("audio rewind", Math.floor(lag));
-            } else {
-                this.writeSoundToExistingBuffer(pointer8, length16);
-            }
-
-        }
-
-    };
-    
-
-
-    VBASound.prototype.writeSoundToNewBuffer = function (pointer8, length16) {
-
-        var oldAudioSource = this.audioSource;
-
-        this.audioSource = this.audioCtx.createBufferSource();
-        this.audioSource.playbackRate.value = 1;
-        this.audioSource.loop = true;
-        this.audioSource.buffer = this.audioBuffers;
-        this.audioSource.connect(this.audioCtx.destination);
-        for (var channel = 0; channel < this.audioChannels; channel++) {
-            var nowBuffering = this.audioBuffers.getChannelData(channel);
-            for (var i = 0; i < this.audioSampleCount; i++) {
-                nowBuffering[i] = 0;
-            }
-        }
-
-        if (oldAudioSource) {
-            oldAudioSource.stop(this.audioCtx.currentTime + 0.1);
-        }
-        this.audioSource.start(this.audioCtx.currentTime + 0.1);
-
-
-        this.audioStartTime = this.currentAudioTime();
-        this.audioSamplesRecieved = 0;
-        this.audioSamplesPlayed = 0;
-        this.audioLastWrite = this.currentAudioTime();
-
-
-
-        this.writeSoundToExistingBuffer(pointer8, length16);
-    };
-
-    VBASound.prototype.writeSoundToExistingBuffer = function (pointer8, length16) {
-
-        var pointer16 = pointer8 >> 1;
-        var heap16 = this.emscriptenModule.HEAP16;
-        var audioChannelBuffers = [];
-        var i, channel;
-        
-        for (i = 0; i < this.audioChannels; i++) {
-            audioChannelBuffers.push(this.audioBuffers.getChannelData(i));
-        }
-        
-
-        if (this.audioChannels === 2) {
-            for (i = 0; i < length16; i += 2) {
-                for (channel = 0; channel < this.audioChannels; channel++) {
-                    audioChannelBuffers[channel][this.audioProgressPointer] = heap16[pointer16 + i + channel] / 0x4000;
-                }
-                this.audioProgressPointer++;
-                if (this.audioProgressPointer >= this.audioSampleCount) {
-                    this.audioProgressPointer = 0;
-                }
-            }
-
-        } else {
-
-            for (i = 0; i < length16; i += 2) {
-                for (channel = 0; channel < this.audioChannels; channel++) {
-                    audioChannelBuffers[channel][this.audioProgressPointer] = heap16[pointer16 + i] / 0x4000;
-                }
-                this.audioProgressPointer++;
-                if (this.audioProgressPointer >= this.audioSampleCount) {
-                    this.audioProgressPointer = 0;
-                }
-            }
-
-        }
-
-    };
-
-    VBASound.prototype.writeSilence = function (pointer8, numSamples) {
-
-        this.audioSamplesRecieved += numSamples;
-        var audioChannelBuffers = [];
-        
-        var i;
-        
-        for (i = 0; i < this.audioChannels; i++) {
-            audioChannelBuffers.push(this.audioBuffers.getChannelData(i));
-        }
-
-        for (i = 0; i < numSamples; i += 1) {
-            for (var channel = 0; channel < this.audioChannels; channel++) {
-                audioChannelBuffers[channel][this.audioProgressPointer] = 0;
-            }
-            this.audioProgressPointer++;
-            if (this.audioProgressPointer >= this.audioSampleCount) {
-                this.audioProgressPointer = 0;
-            }
-        }
-
-    };
-
-    VBASound.prototype.cleanup = function () {
-
-        this.audioSamplesRecieved += numSamples;
-        var audioChannelBuffers = [];
-        
-        var i;
-        
-        for (i = 0; i < this.audioChannels; i++) {
-            audioChannelBuffers.push(this.audioBuffers.getChannelData(i));
-        }
-
-        for (i = 0; i < numSamples; i += 1) {
-            for (var channel = 0; channel < this.audioChannels; channel++) {
-                audioChannelBuffers[channel][this.audioProgressPointer] = 0;
-            }
-            this.audioProgressPointer++;
-            if (this.audioProgressPointer >= this.audioSampleCount) {
-                this.audioProgressPointer = 0;
-            }
-        }
-
-    };
-
-    VBASound.prototype.rewindSound = function (numSamples) {
-
-        this.audioSamplesRecieved -= numSamples;
-        
-        while (this.audioProgressPointer <= 0) {
-            this.audioProgressPointer += this.audioSampleCount;
-        }
-
-    };
-
-    
-    window.VBASound = VBASound;
-    
     
 }());
