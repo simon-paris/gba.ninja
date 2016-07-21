@@ -44,9 +44,13 @@
         this.unsafeSaveBuffer = bufu8;
     };
 
-    VBASaves.prototype.hardCommit = function (romCode, byteArray) {
-        let base64 = btoa(String.fromCharCode.apply(null, byteArray));
-        localStorage[this.localStoragePrefix + romCode] = base64;
+    VBASaves.prototype.hardCommit = function (romCode, uint8Array) {
+        var binary = "";
+        var len = uint8Array.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode( uint8Array[i]);
+        }
+        localStorage[this.localStoragePrefix + romCode] = window.btoa(binary);
     };
 
     VBASaves.prototype.restoreSaveMemory = function (pointer8, targetBufferSize) {
@@ -71,33 +75,39 @@
             if (!this.unsafeSaveTimeout) {
                 this.unsafeSaveTimeout = setTimeout(function () {
                     this.unsafeSaveTimeout = null;
-                    if (this.VBA_get_emulating()) {
-                        console.log("writing battery file");
-                        this.VBA_emuWriteBattery();
-                        this.VBA_reset_systemSaveUpdateCounter();
+                    if (window.VBA_get_emulating()) {
+                        console.log("[SAVE] soft commit done");
+                        window.VBA_emuWriteBattery();
+                        window.VBA_reset_systemSaveUpdateCounter();
                     }
-                }, 32);
+                }.bind(this), 32);
             }
-
-            // Commit the save to localstorage if it hasn't been
-            // changed in a while.
-            clearTimeout(this.safeSaveTimeout);
-            this.safeSaveTimeout = null;
-            if (this.unsafeSaveBuffer) {
-                this.safeSaveTimeout = setTimeout(function () {
-                    if (this.VBA_get_emulating()) {
-                        this.hardCommit(this.getRomCode(), this.unsafeSaveBuffer);
-                        this.unsafeSaveBuffer = null;
-                    }
-                }, 70);
-            }
-
+            
         }
+
+        // Commit the save to localstorage if it hasn't been
+        // changed in a while.
+        if (this.unsafeSaveBuffer) {
+            console.log("[SAVE] hard commit timer reset");
+            let tempUnsafeSaveBuffer = this.unsafeSaveBuffer;
+            this.unsafeSaveBuffer = null;
+            clearTimeout(this.safeSaveTimeout);
+            this.safeSaveTimeout = setTimeout(function () {
+                this.safeSaveTimeout = null;
+                if (window.VBA_get_emulating()) {
+                    this.hardCommit(this.getRomCode(), tempUnsafeSaveBuffer);
+                    console.log("[SAVE] hard commit done");
+                } else {
+                    console.log("[SAVE] abandoned hard commit, emulator not running");
+                }
+            }.bind(this), 70);
+        }
+        
     };
     
     VBASaves.prototype.exportSave = function (romCode) {
         var blob = new Blob([this.getSave(romCode)], {contentType: "application/octet-stream"});
-        window.saveAs(blob, "GBA Save " + romCode + ".sav", true);
+        window.saveAs(blob, romCode + ".sav", true);
     };
     
     
@@ -107,9 +117,17 @@
         if (FileReader && binaryFile) {
             fr.readAsArrayBuffer(binaryFile);
             fr.onload = function () {
-                let romCode = "????";
-                this.importSave(romCode, fr.result);
-            };
+                debugger;
+                let romCode = binaryFile.fileName.substr(0, 4);
+                if (romCode.search(/^[A-Z]{4}$/) === -1) {
+                    romCode = window.prompt("What is the ROM code of the game that this save file belongs to?");
+                }
+                if (romCode.search(/^[A-Z]{4}$/) === -1) {
+                    alert("Invalid ROM code.");
+                } else {
+                    this.importSave(romCode, new Uint8Array(fr.result));
+                }
+            }.bind(this);
         }
     };
     
