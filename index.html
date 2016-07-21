@@ -28,7 +28,8 @@
             varying highp vec2 v_textureCoord;
 
             void main() {
-                /* This scales the quad so that the screen texture fits the viewport. */
+                /* This scales the quad so that the screen texture fits the viewport.
+                The texture is 256 * 256, but only 240 * 160 is used. The quad is 2*2, centered on (0,0) */
                 gl_Position = vec4((a_position.x * 2.0 * 1.0666) - 1.0, (a_position.y * 2.0 * 1.6) * -1.0 + 1.0, 0, 1);
                 v_textureCoord = vec2(a_position.x, a_position.y);
             }
@@ -46,6 +47,17 @@
         
         <script>
             
+            var backspaceHandler = function (e) {
+                if (e.which === 8){ // backspace
+                    if (!/INPUT|SELECT|TEXTAREA/i.test(e.target.tagName) || e.target.disabled || e.target.readOnly) {
+                        e.preventDefault();
+                    }
+                }
+            }.bind(this);
+            document.addEventListener("keydown", backspaceHandler);
+            document.addEventListener("keypress", backspaceHandler);
+            
+
             window.performance = window.performance || {};
             performance.now = (function () {
                 return performance.now    ||
