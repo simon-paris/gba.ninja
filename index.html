@@ -280,6 +280,10 @@
                 return Module.ccall("VBA_emuWriteBattery", "int", [], []);
             };
             
+            var VBA_agbPrintFlush = function () {
+                return Module.ccall("VBA_agbPrintFlush", "int", [], []);
+            };
+            
             
             
             
@@ -328,6 +332,9 @@
                 return window.vbaSound.writeSound(pointer8, length16);
             };
             
+            VBAInterface.setThrottleSound = function (pointer8, length16) {
+            };
+            
             VBAInterface.getSaveSize = function () {
                 return vbaSaves.getSaveSize();
             };
@@ -342,6 +349,10 @@
             
             VBAInterface.getJoypad = function (joypadNum) {
                 return vbaInput.getJoypad(joypadNum);
+            };
+            
+            VBAInterface.dbgOutput = function (textPointer8, unknownPointer8) {
+                return console.log("At dbgOutput", textPointer8, unknownPointer8);
             };
             
         </script>

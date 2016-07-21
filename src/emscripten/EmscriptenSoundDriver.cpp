@@ -31,3 +31,8 @@ void EmscriptenSoundDriver::write(u16 * finalWave, int length) {
     EM_ASM_INT({return window["VBAInterface"]["writeSound"]($0, $1)}, (int) finalWave, length);
 }
 
+void EmscriptenSoundDriver::setThrottle(unsigned short throttle) {
+    EM_ASM_INT({return window["VBAInterface"]["setThrottleSound"]($0)}, (int) throttle);
+}
+
+

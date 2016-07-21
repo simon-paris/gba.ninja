@@ -2,6 +2,7 @@
 #import "../common/ConfigManager.h"
 #import "../gba/GBA.h"
 #import "../gba/Sound.h"
+#import "../gba/agbprint.h"
 #import "../Util.h"
 #import "EmscriptenSoundDriver.h"
 #import <emscripten.h>
@@ -145,6 +146,10 @@ void DbgMsg(const char *msg, ...) {
 }
 
 
+void (*dbgOutput)(const char *s, u32 addr);
+void _dbgOutput(const char *s, u32 addr) {
+    EM_ASM_INT({return window["VBAInterface"]["dbgOutput"]($0, $1)}, (int) s, (int) addr);
+}
 
 u16 systemColorMap16[0x10000]; // This gets filled by utilUpdateSystemColorMaps in VBA_start
 u32 systemColorMap32[0x10000]; // This gets filled by utilUpdateSystemColorMaps in VBA_start
@@ -159,6 +164,7 @@ int systemBlueShift = 1;
 int systemFrameSkip = 0;
 int systemSaveUpdateCounter = SYSTEM_SAVE_NOT_UPDATED;
 
+int systemVerbose = 1;
 
 int emulating = 0;
 
@@ -184,7 +190,9 @@ ENTRY_FN VBA_start () {
     
     // Misc setup
     utilUpdateSystemColorMaps();
+    agbPrintEnable(true);
     soundSetSampleRate(EM_ASM_INT({return window["VBAInterface"]["getAudioSampleRate"]()}, 0));
+    dbgOutput = _dbgOutput;
     
     // Edit settings for pokemon
     mirroringEnable = 0;
@@ -313,6 +321,11 @@ ENTRY_FN VBA_reset_systemSaveUpdateCounter () {
 
 ENTRY_FN VBA_emuWriteBattery () {
     emulator.emuWriteBattery("");
+    return 1;
+};
+
+ENTRY_FN VBA_agbPrintFlush() {
+    agbPrintFlush();
     return 1;
 };
 
