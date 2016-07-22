@@ -80,9 +80,10 @@
         }
     };
     
+    
     VBAInput.prototype.getJoypad = function () {
         var res = 0;
-
+        
         if (this.isKeyDown(this.bindings.KEY_BUTTON_A)) {
             res |= 1;
         }
@@ -116,10 +117,10 @@
 
         // disallow L+R or U+D of being pressed at the same time
         if ((res & 48) === 48) {
-            res &= ~16;
+            res &= ~48;
         }
         if ((res & 192) === 192) {
-            res &= ~128;
+            res &= ~192;
         }
 
         return res;
