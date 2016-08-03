@@ -28,8 +28,10 @@
             varying highp vec2 v_textureCoord;
 
             void main() {
-                /* This scales the quad so that the screen texture fits the viewport.
-                The texture is 256 * 256, but only 240 * 160 is used. The quad is 2*2, centered on (0,0) */
+                /* 
+                 * This scales the quad so that the screen texture fits the viewport.
+                 * The texture is 256 * 256, but only 240 * 160 is used. The quad is 2*2, centered on (0,0)
+                 */
                 gl_Position = vec4((a_position.x * 2.0 * 1.0666) - 1.0, (a_position.y * 2.0 * 1.6) * -1.0 + 1.0, 0, 1);
                 v_textureCoord = vec2(a_position.x, a_position.y);
             }
@@ -47,8 +49,9 @@
         
         <script>
             
+            // Disable backspace navigation
             var backspaceHandler = function (e) {
-                if (e.which === 8){ // backspace
+                if (e.which === 8) {
                     if (!/INPUT|SELECT|TEXTAREA/i.test(e.target.tagName) || e.target.disabled || e.target.readOnly) {
                         e.preventDefault();
                     }
@@ -57,7 +60,8 @@
             document.addEventListener("keydown", backspaceHandler);
             document.addEventListener("keypress", backspaceHandler);
             
-
+            
+            // Shim performance.now
             window.performance = window.performance || {};
             performance.now = (function () {
                 return performance.now    ||
@@ -95,26 +99,19 @@
             
             
             var romBuffer8 = null;
-            window.loadCartridge = function (url, callback) {
-                if (callback) {
-                    onReady("cartridge", callback);
+            window.loadCartridge = function (e) {
+                
+                let binaryFile = e.currentTarget.files[0];
+                var fr = new FileReader();
+                if (FileReader && binaryFile) {
+                    fr.readAsArrayBuffer(binaryFile);
+                    fr.onload = function () {
+                        romBuffer8 = new Uint8Array(fr.result);
+                        triggerReady("cartridge");
+                    }.bind(this);
                 }
                 
-                var oReq = new XMLHttpRequest();
-                oReq.open("GET", url, true);
-                oReq.responseType = "arraybuffer";
-                oReq.send(null);
-                
-                oReq.onload = function (oEvent) {
-                    
-                    var romBuffer = oReq.response;
-                    romBuffer8 = new Uint8Array(romBuffer);
-                    triggerReady("cartridge");
-                    
-                };
-                
             };
-            loadCartridge("./firered.gba");
             
             
             window.Module = {
@@ -128,26 +125,17 @@
                 triggerReady("document");
             });
             
-            onReady("cartridge", function () {
-                onReady("emu", function () {
-                    onReady("document", function () {
-                        triggerReady("everything");
-                    });
+            
+            onReady("emu", function () {
+                onReady("document", function () {
+                    window.init();
                 });
             });
-            
-            
-            onReady("everything", function () {
-                window.init();
-                window.start();
-            });
-            
-            
             
 
             window.init = function () {
                 
-                document.querySelector(".pixels").innerHTML = '<input type="file" onchange="vbaSaves.onFileImportInputChanged(event)"/><canvas width="240" height="160"></canvas>';
+                document.querySelector(".pixels").innerHTML = '<canvas width="240" height="160"></canvas>';
                 
                 window.vbaGraphics = new VBAGraphics(window.Module, document.querySelector("canvas"));
                 window.vbaGraphics.initScreen();
@@ -159,9 +147,13 @@
                 window.vbaSound = new VBASound(window.Module);
                 window.vbaSaves = new VBASaves(window.Module);
                 window.vbaInput = new VBAInput(window.Module);
+                window.vbaUI = new VBAUI(document.querySelector(".ui"));
                 
+                document.querySelector(".pixels").style.display = "none";
+                document.querySelector(".ui").style.display = "block";
                 
-
+                vbaUI.reset();
+                
             };
             
             
@@ -172,6 +164,7 @@
                 
                 VBA_start();
                 document.querySelector(".pixels").style.display = "block";
+                document.querySelector(".ui").style.display = "none";
                 
                 var GBA_CYCLES_PER_SECOND = 16777216;
                 window.isRunning = true;
@@ -184,8 +177,8 @@
                     if (isRunning) {
                         vbaSaves.checkSaves();
                         
+                        // Use the number of sound samples to determine if the emulation is running too fast
                         if (vbaSound.getNumExtraSamples() < 10000) {
-                            // Static Framerate
                             var cycles = Math.min(
                                 GBA_CYCLES_PER_SECOND / 60,
                                 Math.floor(GBA_CYCLES_PER_SECOND / (1000 / deltaTime))
@@ -198,6 +191,7 @@
                     } else {
                         VBA_stop();
                         document.querySelector(".pixels").style.display = "none";
+                        document.querySelector(".ui").style.display = "block";
                     }
                 };
                 eachFrame();
@@ -373,10 +367,28 @@
         <script src="./Sound.js"></script>
         <script src="./Saves.js"></script>
         <script src="./Input.js"></script>
+        <script src="./UI.js"></script>
         <script src="./emu.js"></script>
     </head>
     <body>
+        <style>
+            
+        </style>
         <div class="pixels"></div>
+        <div class="ui">
+            <img src="test"/>
+            <h2>Load a ROM</h2>
+            <div>
+                <label for="load-rom">Run ROM</label>
+                <input id="load-rom" type="file" onchange="window.loadCartridge(event);window.onReady('cartridge', function () {start()});"/>
+            </div>
+            <h2>Saves</h2>
+            <ul class="saves-list"></ul>
+            <div>
+                <label for="import-save-file">Import Save File</label>
+                <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event)"/>
+            </div>
+        </div>
     </body>
 </html>
 

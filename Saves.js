@@ -117,7 +117,6 @@
         if (FileReader && binaryFile) {
             fr.readAsArrayBuffer(binaryFile);
             fr.onload = function () {
-                debugger;
                 let romCode = binaryFile.fileName.substr(0, 4);
                 if (romCode.search(/^[A-Z]{4}$/) === -1) {
                     romCode = window.prompt("What is the ROM code of the game that this save file belongs to?");
