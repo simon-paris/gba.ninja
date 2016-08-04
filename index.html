@@ -372,11 +372,22 @@
     </head>
     <body>
         <style>
-            
+            html, body {
+                font-family: sans-serif;
+            }
+            .ui {
+                padding: 20px;
+            }
+            h2 {
+                font-size: 14px;
+            }
+            p, label {
+                font-size: 14px;
+            }
         </style>
-        <div class="pixels"></div>
-        <div class="ui">
-            <img src="test"/>
+        <div style="display: none;" class="pixels"></div>
+        <div style="display: none;" class="ui">
+            <img src="./logo.png" style="height: 50px;"/>
             <h2>Load a ROM</h2>
             <div>
                 <label for="load-rom">Run ROM</label>

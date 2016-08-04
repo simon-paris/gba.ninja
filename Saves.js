@@ -131,6 +131,16 @@
     };
     
     
+    VBASaves.prototype.listSaves = function (e) {
+        return Object.keys(localStorage).filter(function (v) {
+            return v.indexOf(this.localStoragePrefix) === 0;
+        }.bind(this)).map(function (v) {
+            return {
+                romCode: v.substr(this.localStoragePrefix.length, 4),
+            };
+        }.bind(this));
+    };
+    
     VBASaves.prototype.importSave = function (romCode, byteArray) {
         this.hardCommit(romCode, byteArray);
     };
@@ -140,3 +150,12 @@
     
     
 }());
+
+
+
+
+
+
+
+
+
