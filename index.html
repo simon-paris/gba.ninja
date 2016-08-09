@@ -140,9 +140,6 @@
                 window.vbaGraphics = new VBAGraphics(window.Module, document.querySelector("canvas"));
                 window.vbaGraphics.initScreen();
                 window.vbaGraphics.drawFrame();
-                var onResize = window.vbaGraphics.onResize.bind(window.vbaGraphics, window.innerWidth, window.innerHeight);
-                window.onresize = onResize;
-                onResize();
                 
                 window.vbaSound = new VBASound(window.Module);
                 window.vbaSaves = new VBASaves(window.Module);
@@ -162,9 +159,14 @@
                     throw new Error("Already started");
                 }
                 
-                VBA_start();
                 document.querySelector(".pixels").style.display = "block";
                 document.querySelector(".ui").style.display = "none";
+                
+                var onResize = window.vbaGraphics.onResize.bind(window.vbaGraphics, window.innerWidth, window.innerHeight);
+                window.onresize = onResize;
+                onResize();
+                
+                VBA_start();
                 
                 var GBA_CYCLES_PER_SECOND = 16777216;
                 window.isRunning = true;
@@ -384,20 +386,38 @@
             p, label {
                 font-size: 14px;
             }
+            input {
+                position: absolute;
+                left: -1000000000px;
+            }
+            .btn {
+                display: inline-block;
+                border: 4px #666fb1 solid;
+                border-radius: 3px;
+                padding: 8px;
+                background-color: #3a3a3a;
+                color: white;
+                font-weight: 600;
+            }
+            .btn:hover {
+                cursor: pointer;
+                border-color: #b9bdd6;
+                background-color: #7a7994;
+            }
         </style>
         <div style="display: none;" class="pixels"></div>
         <div style="display: none;" class="ui">
             <img src="./logo.png" style="height: 50px;"/>
             <h2>Load a ROM</h2>
             <div>
-                <label for="load-rom">Run ROM</label>
+                <label class="btn" for="load-rom">Run ROM</label>
                 <input id="load-rom" type="file" onchange="window.loadCartridge(event);window.onReady('cartridge', function () {start()});"/>
             </div>
             <h2>Saves</h2>
             <ul class="saves-list"></ul>
             <div>
-                <label for="import-save-file">Import Save File</label>
-                <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event)"/>
+                <label class="btn" for="import-save-file">Import Save File</label>
+                <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event, vbaUI.reset.bind(vbaUI));"/>
             </div>
         </div>
     </body>

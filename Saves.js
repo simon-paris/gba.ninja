@@ -110,14 +110,19 @@
         window.saveAs(blob, romCode + ".sav", true);
     };
     
+    VBASaves.prototype.deleteSave = function (romCode) {
+        if (confirm("Are you sure you want to delete your save for " + romCode + "?")) {
+            delete localStorage[this.localStoragePrefix + romCode];
+        }
+    };
     
-    VBASaves.prototype.onFileImportInputChanged = function (e) {
+    VBASaves.prototype.onFileImportInputChanged = function (e, callback) {
         let binaryFile = e.currentTarget.files[0];
         var fr = new FileReader();
         if (FileReader && binaryFile) {
             fr.readAsArrayBuffer(binaryFile);
             fr.onload = function () {
-                let romCode = binaryFile.fileName.substr(0, 4);
+                let romCode = binaryFile.name.substr(0, 4);
                 if (romCode.search(/^[A-Z]{4}$/) === -1) {
                     romCode = window.prompt("What is the ROM code of the game that this save file belongs to?");
                 }
@@ -125,6 +130,7 @@
                     alert("Invalid ROM code.");
                 } else {
                     this.importSave(romCode, new Uint8Array(fr.result));
+                    callback();
                 }
             }.bind(this);
         }
