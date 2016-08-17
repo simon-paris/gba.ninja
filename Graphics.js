@@ -196,7 +196,7 @@
     };
     
     
-    window.VBAGraphics = VBAGraphics;
+    module.exports = VBAGraphics;
 
 
 }());

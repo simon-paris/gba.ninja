@@ -33,7 +33,7 @@
     };
     
     
-    window.VBAUI = VBAUI;
+    module.exports = VBAUI;
     
     
 }());

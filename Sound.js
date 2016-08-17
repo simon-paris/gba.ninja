@@ -87,7 +87,7 @@
 
         };
 
-        window.VBASound = VBASound;
+        module.exports = VBASound;
         
     } else {
         
@@ -119,7 +119,7 @@
         IE_VBASound.prototype.handleAudioEvent = function (event) {
         };
 
-        window.VBASound = IE_VBASound;
+        module.exports = IE_VBASound;
         
     }
     

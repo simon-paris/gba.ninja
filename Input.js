@@ -128,7 +128,7 @@
     
     
     
-    window.VBAInput = VBAInput;
+    module.exports = VBAInput;
     
     
 }());
