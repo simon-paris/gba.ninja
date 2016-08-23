@@ -8,4 +8,4 @@ node_modules
 *.gba
 *.mem
 emu.js
-gz/*
+gz/
