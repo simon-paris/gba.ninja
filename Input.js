@@ -1,7 +1,59 @@
 (function () {
     "use strict";
     
-            
+    let defaultBindings = {}; 
+
+    defaultBindings.KEY_BUTTON_A = {
+        friendlyName: "A",
+        codes: ["KeyZ"],
+        keyCodes: [90],
+    };
+    defaultBindings.KEY_BUTTON_B = {
+        friendlyName: "B",
+        codes: ["KeyX"],
+        keyCodes: [88],
+    };
+    defaultBindings.KEY_BUTTON_SELECT = {
+        friendlyName: "Select",
+        codes: ["Backspace"],
+        keyCodes: [27, 8],
+    };
+    defaultBindings.KEY_BUTTON_START = {
+        friendlyName: "Start",
+        codes: ["Enter"],
+        keyCodes: [13],
+    };
+    defaultBindings.KEY_RIGHT = {
+        friendlyName: "Right",
+        codes: ["ArrowRight"],
+        keyCodes: [39],
+    };
+    defaultBindings.KEY_LEFT = {
+        friendlyName: "Left",
+        codes: ["ArrowLeft"],
+        keyCodes: [37],
+    };
+    defaultBindings.KEY_UP = {
+        friendlyName: "Up",
+        codes: ["ArrowUp"],
+        keyCodes: [38],
+    };
+    defaultBindings.KEY_DOWN = {
+        friendlyName: "Down",
+        codes: ["ArrowDown"],
+        keyCodes: [40],
+    };
+    defaultBindings.KEY_BUTTON_R = {
+        friendlyName: "R",
+        codes: ["Control"],
+        keyCodes: [17],
+    };
+    defaultBindings.KEY_BUTTON_L = {
+        friendlyName: "L",
+        codes: ["Shift"],
+        keyCodes: [16],
+    };
+        
     
     function VBAInput() {
         
@@ -18,54 +70,49 @@
             this.downKeyCodes[e.keyCode] = 0;
             return false;
         }.bind(this));
-        this.bindings = {}; 
         
-        this.bindings.KEY_BUTTON_A = {
-            codes: ["KeyZ"],
-            keyCodes: [90],
-        };
-        this.bindings.KEY_BUTTON_B = {
-            codes: ["KeyX"],
-            keyCodes: [88],
-        };
-        this.bindings.KEY_BUTTON_SELECT = {
-            codes: ["Escape", "Backspace"],
-            keyCodes: [27, 8],
-        };
-        this.bindings.KEY_BUTTON_START = {
-            codes: ["Enter"],
-            keyCodes: [13],
-        };
-        this.bindings.KEY_RIGHT = {
-            codes: ["ArrowRight"],
-            keyCodes: [39],
-        };
-        this.bindings.KEY_LEFT = {
-            codes: ["ArrowLeft"],
-            keyCodes: [37],
-        };
-        this.bindings.KEY_UP = {
-            codes: ["ArrowUp"],
-            keyCodes: [38],
-        };
-        this.bindings.KEY_DOWN = {
-            codes: ["ArrowDown"],
-            keyCodes: [40],
-        };
-        this.bindings.KEY_BUTTON_R = {
-            codes: ["Control", "ControlLeft", "ControlRight"],
-            keyCodes: [17],
-        };
-        this.bindings.KEY_BUTTON_L = {
-            codes: ["Shift", "ShiftLeft", "ShiftRight"],
-            keyCodes: [16],
-        };
-        
+        this.bindings = null;
+        this.loadBindings();
+        if (this.bindings === null) {
+            this.resetBindings();
+        }
         
     }
     VBAInput.prototype = Object.create(Object.prototype);
     VBAInput.prototype.constructor = VBAInput;
     
+    
+    VBAInput.prototype.listBindings = function () {
+        return Object.keys(this.bindings).map(function (v) {
+            return {
+                name: v,
+                friendlyName: this.bindings[v].friendlyName,
+                codes: this.bindings[v].codes,
+            };
+        }.bind(this));
+    };
+    
+    
+    VBAInput.prototype.setBinding = function (name, code, keyCode) {
+        this.bindings[name].codes = [code];
+        this.bindings[name].keyCodes = [keyCode];
+        this.saveBindings();
+    };
+    
+    VBAInput.prototype.loadBindings = function () {
+        this.bindings = JSON.parse(localStorage["VBABindings"] || "null");
+    };
+    
+    VBAInput.prototype.saveBindings = function () {
+        localStorage["VBABindings"] = JSON.stringify(this.bindings); 
+    };
+    
+    VBAInput.prototype.resetBindings = function () {
+        this.bindings = defaultBindings;
+        // Lazy clone bindings object
+        this.saveBindings();
+        this.loadBindings();
+    };
     
     VBAInput.prototype.isKeyDown = function (binding) {
         for (let i = 0; i < binding.codes.length; i++) {

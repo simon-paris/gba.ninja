@@ -304,8 +304,9 @@
             }
             .ui-border {
                 padding: 20px;
-                border: 3px solid #828282;
+                border: 3px solid #3a3a3a;
                 float: left;
+                margin-bottom: 50px;
             }
             h2 {
                 font-size: 14px;
@@ -343,7 +344,7 @@
             }
             td {
                 padding: 5px 15px;
-                border: 2px solid black;
+                border: 2px solid #3a3a3a;
                 border-top: none;
                 border-bottom: none;
             }
@@ -352,7 +353,7 @@
                 
             }
         </style>
-        <div style="display: none;" class="pixels"></div>
+        <div class="pixels"></div>
         <div style="display: none;" class="ui">
             <div class="ui-border">
                 <img src="./logo.png" style="height: 50px;"/>
@@ -361,10 +362,12 @@
                     <label class="btn" for="load-rom-from-file">From File</label>
                     <input id="load-rom-from-file" type="file" onchange="window.loadRomFromFile(event);window.onReady('cartridge', function () {start()});"/>
                 </div>
+<!--
                 <div>
                     <label class="btn" for="load-rom-from-url" onclick="window.loadCartridgeFromURL(event);window.onReady('cartridge', function () {start()});">From URL</label>
                     <input id="load-rom-from-url" type="text"/>
                 </div>
+-->
                 <h2>Saves</h2>
                 <p class="saves-list"></p>
                 <div>
@@ -373,52 +376,7 @@
                 </div>
                 <h2>Keyboard Bindings</h2>
                 <p class="keyboard-bindings"></p>
-                <div>
-                    <table>
-                        <tbody>
-                            <tr>
-                                <td>KEY_BUTTON_A</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>KEY_BUTTON_B</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>KEY_BUTTON_SELECT</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>KEY_BUTTON_START</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>KEY_RIGHT</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>KEY_LEFT</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>KEY_UP</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>KEY_DOWN</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>KEY_BUTTON_R</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>KEY_BUTTON_L</td>
-                                <td>-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <button class="btn reset-bindings-button" onclick="vbaUI.resetBindings();">Reset Bindings</button>
             </div>
         </div>
     </body>

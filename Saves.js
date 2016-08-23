@@ -2,6 +2,8 @@
     "use strict";
     
     
+    let saveAs = require("./saveAs").saveAs;
+    
     function VBASaves(emscriptenModule) {
         this.emscriptenModule = emscriptenModule;
         
@@ -107,7 +109,7 @@
     
     VBASaves.prototype.exportSave = function (romCode) {
         var blob = new Blob([this.getSave(romCode)], {contentType: "application/octet-stream"});
-        window.saveAs(blob, romCode + ".sav", true);
+        saveAs(blob, romCode + ".sav", true);
     };
     
     VBASaves.prototype.deleteSave = function (romCode) {

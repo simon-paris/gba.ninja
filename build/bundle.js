@@ -48,8 +48,8 @@
 	let VBAGraphics = __webpack_require__(1);
 	let VBASound = __webpack_require__(2);
 	let VBASaves = __webpack_require__(3);
-	let VBAInput = __webpack_require__(4);
-	let VBAUI = __webpack_require__(5);
+	let VBAInput = __webpack_require__(7);
+	let VBAUI = __webpack_require__(8);
 
 	window.init = function () {
 
@@ -468,11 +468,13 @@
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	(function () {
 	    "use strict";
 	    
+	    
+	    let saveAs = __webpack_require__(4).saveAs;
 	    
 	    function VBASaves(emscriptenModule) {
 	        this.emscriptenModule = emscriptenModule;
@@ -579,7 +581,7 @@
 	    
 	    VBASaves.prototype.exportSave = function (romCode) {
 	        var blob = new Blob([this.getSave(romCode)], {contentType: "application/octet-stream"});
-	        window.saveAs(blob, romCode + ".sav", true);
+	        saveAs(blob, romCode + ".sav", true);
 	    };
 	    
 	    VBASaves.prototype.deleteSave = function (romCode) {
@@ -641,12 +643,272 @@
 
 /***/ },
 /* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* FileSaver.js
+	 * A saveAs() FileSaver implementation.
+	 * 1.3.2
+	 * 2016-06-16 18:25:19
+	 *
+	 * By Eli Grey, http://eligrey.com
+	 * License: MIT
+	 *   See https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
+	 */
+
+	/*global self */
+	/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+
+	/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+
+	var saveAs = saveAs || (function(view) {
+		"use strict";
+		// IE <10 is explicitly unsupported
+		if (typeof view === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
+			return;
+		}
+		var
+			  doc = view.document
+			  // only get URL when necessary in case Blob.js hasn't overridden it yet
+			, get_URL = function() {
+				return view.URL || view.webkitURL || view;
+			}
+			, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+			, can_use_save_link = "download" in save_link
+			, click = function(node) {
+				var event = new MouseEvent("click");
+				node.dispatchEvent(event);
+			}
+			, is_safari = /constructor/i.test(view.HTMLElement)
+			, is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+			, throw_outside = function(ex) {
+				(view.setImmediate || view.setTimeout)(function() {
+					throw ex;
+				}, 0);
+			}
+			, force_saveable_type = "application/octet-stream"
+			// the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+			, arbitrary_revoke_timeout = 1000 * 40 // in ms
+			, revoke = function(file) {
+				var revoker = function() {
+					if (typeof file === "string") { // file is an object URL
+						get_URL().revokeObjectURL(file);
+					} else { // file is a File
+						file.remove();
+					}
+				};
+				setTimeout(revoker, arbitrary_revoke_timeout);
+			}
+			, dispatch = function(filesaver, event_types, event) {
+				event_types = [].concat(event_types);
+				var i = event_types.length;
+				while (i--) {
+					var listener = filesaver["on" + event_types[i]];
+					if (typeof listener === "function") {
+						try {
+							listener.call(filesaver, event || filesaver);
+						} catch (ex) {
+							throw_outside(ex);
+						}
+					}
+				}
+			}
+			, auto_bom = function(blob) {
+				// prepend BOM for UTF-8 XML and text/* types (including HTML)
+				// note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+				if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+					return new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+				}
+				return blob;
+			}
+			, FileSaver = function(blob, name, no_auto_bom) {
+				if (!no_auto_bom) {
+					blob = auto_bom(blob);
+				}
+				// First try a.download, then web filesystem, then object URLs
+				var
+					  filesaver = this
+					, type = blob.type
+					, force = type === force_saveable_type
+					, object_url
+					, dispatch_all = function() {
+						dispatch(filesaver, "writestart progress write writeend".split(" "));
+					}
+					// on any filesys errors revert to saving with object URLs
+					, fs_error = function() {
+						if ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+							// Safari doesn't allow downloading of blob urls
+							var reader = new FileReader();
+							reader.onloadend = function() {
+								var url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/, 'data:attachment/file;');
+								var popup = view.open(url, '_blank');
+								if(!popup) view.location.href = url;
+								url=undefined; // release reference before dispatching
+								filesaver.readyState = filesaver.DONE;
+								dispatch_all();
+							};
+							reader.readAsDataURL(blob);
+							filesaver.readyState = filesaver.INIT;
+							return;
+						}
+						// don't create more object URLs than needed
+						if (!object_url) {
+							object_url = get_URL().createObjectURL(blob);
+						}
+						if (force) {
+							view.location.href = object_url;
+						} else {
+							var opened = view.open(object_url, "_blank");
+							if (!opened) {
+								// Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+								view.location.href = object_url;
+							}
+						}
+						filesaver.readyState = filesaver.DONE;
+						dispatch_all();
+						revoke(object_url);
+					}
+				;
+				filesaver.readyState = filesaver.INIT;
+
+				if (can_use_save_link) {
+					object_url = get_URL().createObjectURL(blob);
+					setTimeout(function() {
+						save_link.href = object_url;
+						save_link.download = name;
+						click(save_link);
+						dispatch_all();
+						revoke(object_url);
+						filesaver.readyState = filesaver.DONE;
+					});
+					return;
+				}
+
+				fs_error();
+			}
+			, FS_proto = FileSaver.prototype
+			, saveAs = function(blob, name, no_auto_bom) {
+				return new FileSaver(blob, name || blob.name || "download", no_auto_bom);
+			}
+		;
+		// IE 10+ (native saveAs)
+		if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) {
+			return function(blob, name, no_auto_bom) {
+				name = name || blob.name || "download";
+
+				if (!no_auto_bom) {
+					blob = auto_bom(blob);
+				}
+				return navigator.msSaveOrOpenBlob(blob, name);
+			};
+		}
+
+		FS_proto.abort = function(){};
+		FS_proto.readyState = FS_proto.INIT = 0;
+		FS_proto.WRITING = 1;
+		FS_proto.DONE = 2;
+
+		FS_proto.error =
+		FS_proto.onwritestart =
+		FS_proto.onprogress =
+		FS_proto.onwrite =
+		FS_proto.onabort =
+		FS_proto.onerror =
+		FS_proto.onwriteend =
+			null;
+
+		return saveAs;
+	}(
+		   typeof self !== "undefined" && self
+		|| typeof window !== "undefined" && window
+		|| this.content
+	));
+	// `self` is undefined in Firefox for Android content script context
+	// while `this` is nsIContentFrameMessageManager
+	// with an attribute `content` that corresponds to the window
+
+	if (typeof module !== "undefined" && module.exports) {
+	  module.exports.saveAs = saveAs;
+	} else if (("function" !== "undefined" && __webpack_require__(5) !== null) && (__webpack_require__(6) !== null)) {
+	  !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+	    return saveAs;
+	  }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	module.exports = function() { throw new Error("define cannot be used indirect"); };
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+	/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 7 */
 /***/ function(module, exports) {
 
 	(function () {
 	    "use strict";
 	    
-	            
+	    let defaultBindings = {}; 
+
+	    defaultBindings.KEY_BUTTON_A = {
+	        friendlyName: "A",
+	        codes: ["KeyZ"],
+	        keyCodes: [90],
+	    };
+	    defaultBindings.KEY_BUTTON_B = {
+	        friendlyName: "B",
+	        codes: ["KeyX"],
+	        keyCodes: [88],
+	    };
+	    defaultBindings.KEY_BUTTON_SELECT = {
+	        friendlyName: "Select",
+	        codes: ["Backspace"],
+	        keyCodes: [27, 8],
+	    };
+	    defaultBindings.KEY_BUTTON_START = {
+	        friendlyName: "Start",
+	        codes: ["Enter"],
+	        keyCodes: [13],
+	    };
+	    defaultBindings.KEY_RIGHT = {
+	        friendlyName: "Right",
+	        codes: ["ArrowRight"],
+	        keyCodes: [39],
+	    };
+	    defaultBindings.KEY_LEFT = {
+	        friendlyName: "Left",
+	        codes: ["ArrowLeft"],
+	        keyCodes: [37],
+	    };
+	    defaultBindings.KEY_UP = {
+	        friendlyName: "Up",
+	        codes: ["ArrowUp"],
+	        keyCodes: [38],
+	    };
+	    defaultBindings.KEY_DOWN = {
+	        friendlyName: "Down",
+	        codes: ["ArrowDown"],
+	        keyCodes: [40],
+	    };
+	    defaultBindings.KEY_BUTTON_R = {
+	        friendlyName: "R",
+	        codes: ["Control"],
+	        keyCodes: [17],
+	    };
+	    defaultBindings.KEY_BUTTON_L = {
+	        friendlyName: "L",
+	        codes: ["Shift"],
+	        keyCodes: [16],
+	    };
+	        
 	    
 	    function VBAInput() {
 	        
@@ -663,54 +925,49 @@
 	            this.downKeyCodes[e.keyCode] = 0;
 	            return false;
 	        }.bind(this));
-	        this.bindings = {}; 
 	        
-	        this.bindings.KEY_BUTTON_A = {
-	            codes: ["KeyZ"],
-	            keyCodes: [90],
-	        };
-	        this.bindings.KEY_BUTTON_B = {
-	            codes: ["KeyX"],
-	            keyCodes: [88],
-	        };
-	        this.bindings.KEY_BUTTON_SELECT = {
-	            codes: ["Escape", "Backspace"],
-	            keyCodes: [27, 8],
-	        };
-	        this.bindings.KEY_BUTTON_START = {
-	            codes: ["Enter"],
-	            keyCodes: [13],
-	        };
-	        this.bindings.KEY_RIGHT = {
-	            codes: ["ArrowRight"],
-	            keyCodes: [39],
-	        };
-	        this.bindings.KEY_LEFT = {
-	            codes: ["ArrowLeft"],
-	            keyCodes: [37],
-	        };
-	        this.bindings.KEY_UP = {
-	            codes: ["ArrowUp"],
-	            keyCodes: [38],
-	        };
-	        this.bindings.KEY_DOWN = {
-	            codes: ["ArrowDown"],
-	            keyCodes: [40],
-	        };
-	        this.bindings.KEY_BUTTON_R = {
-	            codes: ["Control", "ControlLeft", "ControlRight"],
-	            keyCodes: [17],
-	        };
-	        this.bindings.KEY_BUTTON_L = {
-	            codes: ["Shift", "ShiftLeft", "ShiftRight"],
-	            keyCodes: [16],
-	        };
-	        
+	        this.bindings = null;
+	        this.loadBindings();
+	        if (this.bindings === null) {
+	            this.resetBindings();
+	        }
 	        
 	    }
 	    VBAInput.prototype = Object.create(Object.prototype);
 	    VBAInput.prototype.constructor = VBAInput;
 	    
+	    
+	    VBAInput.prototype.listBindings = function () {
+	        return Object.keys(this.bindings).map(function (v) {
+	            return {
+	                name: v,
+	                friendlyName: this.bindings[v].friendlyName,
+	                codes: this.bindings[v].codes,
+	            };
+	        }.bind(this));
+	    };
+	    
+	    
+	    VBAInput.prototype.setBinding = function (name, code, keyCode) {
+	        this.bindings[name].codes = [code];
+	        this.bindings[name].keyCodes = [keyCode];
+	        this.saveBindings();
+	    };
+	    
+	    VBAInput.prototype.loadBindings = function () {
+	        this.bindings = JSON.parse(localStorage["VBABindings"] || "null");
+	    };
+	    
+	    VBAInput.prototype.saveBindings = function () {
+	        localStorage["VBABindings"] = JSON.stringify(this.bindings); 
+	    };
+	    
+	    VBAInput.prototype.resetBindings = function () {
+	        this.bindings = defaultBindings;
+	        // Lazy clone bindings object
+	        this.saveBindings();
+	        this.loadBindings();
+	    };
 	    
 	    VBAInput.prototype.isKeyDown = function (binding) {
 	        for (let i = 0; i < binding.codes.length; i++) {
@@ -779,7 +1036,7 @@
 	}());
 
 /***/ },
-/* 5 */
+/* 8 */
 /***/ function(module, exports) {
 
 	(function () {
@@ -789,7 +1046,11 @@
 	    function VBAUI(el) {
 	        this.el = el;
 	        
+	        this.currentlyBinding = false;
 	        this.initialHTML = el.innerHTML;
+	        
+	        this.el.addEventListener("keydown", this.onKeyDown.bind(this));
+	        
 	    }
 	    VBAUI.prototype = Object.create(Object.prototype);
 	    VBAUI.prototype.constructor = VBAUI;
@@ -797,6 +1058,7 @@
 	    
 	    VBAUI.prototype.reset = function () {
 	        this.el.innerHTML = this.initialHTML;
+	        this.currentlyBinding = false;
 	        
 	        let savesEl = window.document.querySelector(".saves-list");
 	        let savesHTML = "<table>";
@@ -808,12 +1070,48 @@
 	                "<td><a class='delete-save-button' onclick='vbaSaves.deleteSave(\"" + saves[i].romCode + "\")' href='javascript:void 0;' data-rom-code='" + saves[i].romCode + "'>Delete</a></td>" +
 	            "</tr>";
 	        }
+	        if (!saves.length) {
+	            savesHTML += "&nbsp;None";
+	        }
+	        savesHTML += "</table>";
 	        savesEl.innerHTML = savesHTML;
+	        
+	        let keyboardBindingsEl = window.document.querySelector(".keyboard-bindings");
+	        let keyboardBindingsHTML = "<table>";
+	        let keyboardBindings = window.vbaInput.listBindings();
+	        for (let i = 0; i < keyboardBindings.length; i++) {
+	            keyboardBindingsHTML += "<tr>" +
+	                "<td>" + keyboardBindings[i].friendlyName + "</td>" +
+	                "<td>" + keyboardBindings[i].codes.join(", ").replace(/Key/im, "Key ").replace(/Arrow/im, "Arrow ") + "</td>" +
+	                "<td><a class='rebind-key-button' onclick='vbaUI.startRebinding(this, \"" + keyboardBindings[i].name + "\")' href='javascript:void 0;'>Rebind</a></td>" +
+	            "</tr>";
+	        }
+	        keyboardBindingsHTML += "</table>";
+	        keyboardBindingsEl.innerHTML = keyboardBindingsHTML;
 	        
 	    };
 	    
 	    VBAUI.prototype.export = function (e) {
 	        vbaSaves.exportSave();
+	    };
+	    
+	    
+	    VBAUI.prototype.onKeyDown = function (e) {
+	        if (this.currentlyBinding) {
+	            vbaInput.setBinding(this.currentlyBinding, e.code, e.keyCode);
+	            this.reset();
+	        }
+	    };
+	    
+	    
+	    VBAUI.prototype.startRebinding = function (el, name) {
+	        this.currentlyBinding = name;
+	        el.innerText = "Rebinding...";
+	    };
+	    
+	    VBAUI.prototype.resetBindings = function () {
+	        vbaInput.resetBindings();
+	        this.reset();
 	    };
 	    
 	    
