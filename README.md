@@ -1,13 +1,9 @@
-# browsergba.com
+# gba.ninja
 
-This is an emscripten port of https://github.com/visualboyadvance-m/visualboyadvance-m. It's not using
-the emscripten SDL port, it's using custom bindings to get pixel/audio/input/savegame data into & out
-of the emulator.
+This is an emscripten port of https://github.com/visualboyadvance-m/visualboyadvance-m. It's using custom bindings to get pixel/audio/input/savegame data into & out of the emulator. (as opposed to using emstripten's built in file system and sdl support).
 
 Eventually, it should work on all browsers that support WebGL. Currently, it also requires HTML5 Audio
 and localStorage (so IE11 and Safari private won't work). Input doesn't work on IE currently.
-
-This is not a GitHub fork because I don't intend to PR it.
 
 # Build
 
