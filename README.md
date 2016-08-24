@@ -12,21 +12,17 @@ Install nodejs and emscripten. Ensure that `node` and `emcc` are on your path.
 Run `node build`. Open `index.html`.
 
 ## TODOs
- * Improve audio sync
  * Fix input on IE
  * Keep aspect ratio
  * Touch controls
- * Publish
  * Loading screen
  * Enable frameskip on slow devices
- * More options for loading roms
- * Key bindings menu
- * Browser compatibility display
- * List, Export & Delete savegames
+ * Ability to load BIOS
+ * Load ROM from URL
+ * Support for roms in zip files
  * Cache roms in HTML5 FS
- * Rom streaming
  * Investigate busy loop elimination
- 
+ * Mute button (should disable audio emulation)
 
 ## Licence
 VisualBoyAdvance - Nintendo Gameboy/GameboyAdvance (TM) emulator.
