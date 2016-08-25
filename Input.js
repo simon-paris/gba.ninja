@@ -1,7 +1,7 @@
 (function () {
     "use strict";
     
-    let defaultBindings = {}; 
+    var defaultBindings = {}; 
 
     defaultBindings.KEY_BUTTON_A = {
         friendlyName: "A",
@@ -115,12 +115,13 @@
     };
     
     VBAInput.prototype.isKeyDown = function (binding) {
-        for (let i = 0; i < binding.codes.length; i++) {
+        var i;
+        for (i = 0; i < binding.codes.length; i++) {
             if (this.downCodes[binding.codes[i]]) {
                 return true;
             }
         }
-        for (let i = 0; i < binding.keyCodes.length; i++) {
+        for (i = 0; i < binding.keyCodes.length; i++) {
             if (this.downKeyCodes[binding.keyCodes[i]]) {
                 return true;
             }

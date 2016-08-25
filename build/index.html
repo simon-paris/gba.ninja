@@ -74,6 +74,12 @@
                     };
             })();
             
+            
+            // Shim localstorage
+            if (!window.localStorage) {
+                window.localStorage = {};
+            }
+            
             var readyHandlers = {};
             var onReady = function (what, fn) {
                 if (readyHandlers[what] === null) {
@@ -101,7 +107,7 @@
             var romBuffer8 = null;
             window.loadRomFromFile = function (e) {
                 
-                let binaryFile = e.currentTarget.files[0];
+                var binaryFile = e.currentTarget.files[0];
                 var fr = new FileReader();
                 if (FileReader && binaryFile) {
                     fr.readAsArrayBuffer(binaryFile);
@@ -240,7 +246,7 @@
             
             VBAInterface.copyRomToMemory = function (startPointer8) {
                 var gbaHeap8 = Module.HEAP8;
-                let byteLength = romBuffer8.byteLength;
+                var byteLength = romBuffer8.byteLength;
                 for (var i = 0; i < byteLength; i++) {
                     gbaHeap8[startPointer8 + i] = romBuffer8[i];
                 }

@@ -1,9 +1,9 @@
 
-let VBAGraphics = require("./Graphics");
-let VBASound = require("./Sound");
-let VBASaves = require("./Saves");
-let VBAInput = require("./Input");
-let VBAUI = require("./UI");
+var VBAGraphics = require("./Graphics");
+var VBASound = require("./Sound");
+var VBASaves = require("./Saves");
+var VBAInput = require("./Input");
+var VBAUI = require("./UI");
 
 window.init = function () {
 
@@ -42,10 +42,10 @@ window.start = function () {
 
     var GBA_CYCLES_PER_SECOND = 16777216;
     window.isRunning = true;
-    let lastFrameTime = Date.now();
+    var lastFrameTime = Date.now();
     function eachFrame () {
-        let currentTime = Date.now();
-        let deltaTime = currentTime - lastFrameTime;
+        var currentTime = Date.now();
+        var deltaTime = currentTime - lastFrameTime;
         lastFrameTime = currentTime;
 
         if (isRunning) {

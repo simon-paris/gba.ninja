@@ -19,14 +19,14 @@
         this.el.innerHTML = this.initialHTML;
         this.currentlyBinding = false;
         
-        let savesEl = window.document.querySelector(".saves-list");
-        let savesHTML = "<table>";
-        let saves = window.vbaSaves.listSaves();
-        for (let i = 0; i < saves.length; i++) {
+        var savesEl = window.document.querySelector(".saves-list");
+        var savesHTML = "<table>";
+        var saves = window.vbaSaves.listSaves();
+        for (var i = 0; i < saves.length; i++) {
             savesHTML += "<tr>" +
                 "<td>" + saves[i].romCode + "</td>" +
-                "<td><a class='export-save-button' onclick='vbaSaves.exportSave(\"" + saves[i].romCode + "\")' href='javascript:void 0;' data-rom-code='" + saves[i].romCode + "'>Export</a></td>" +
-                "<td><a class='delete-save-button' onclick='vbaSaves.deleteSave(\"" + saves[i].romCode + "\")' href='javascript:void 0;' data-rom-code='" + saves[i].romCode + "'>Delete</a></td>" +
+                "<td><a class='export-save-button' onclick='vbaUI.exportSave(\"" + saves[i].romCode + "\")' href='javascript:void 0;' data-rom-code='" + saves[i].romCode + "'>Export</a></td>" +
+                "<td><a class='delete-save-button' onclick='vbaUI.deleteSave(\"" + saves[i].romCode + "\")' href='javascript:void 0;' data-rom-code='" + saves[i].romCode + "'>Delete</a></td>" +
             "</tr>";
         }
         if (!saves.length) {
@@ -35,10 +35,10 @@
         savesHTML += "</table>";
         savesEl.innerHTML = savesHTML;
         
-        let keyboardBindingsEl = window.document.querySelector(".keyboard-bindings");
-        let keyboardBindingsHTML = "<table>";
-        let keyboardBindings = window.vbaInput.listBindings();
-        for (let i = 0; i < keyboardBindings.length; i++) {
+        var keyboardBindingsEl = window.document.querySelector(".keyboard-bindings");
+        var keyboardBindingsHTML = "<table>";
+        var keyboardBindings = window.vbaInput.listBindings();
+        for (var i = 0; i < keyboardBindings.length; i++) {
             keyboardBindingsHTML += "<tr>" +
                 "<td>" + keyboardBindings[i].friendlyName + "</td>" +
                 "<td>" + keyboardBindings[i].codes.join(", ").replace(/Key/im, "Key ").replace(/Arrow/im, "Arrow ") + "</td>" +
@@ -50,7 +50,7 @@
         
     };
     
-    VBAUI.prototype.export = function (e) {
+    VBAUI.prototype.export = function () {
         vbaSaves.exportSave();
     };
     
@@ -73,6 +73,15 @@
         this.reset();
     };
     
+    VBAUI.prototype.exportSave = function () {
+        vbaSaves.exportSave.apply(vbaSaves, arguments);
+        this.reset();
+    };
+    
+    VBAUI.prototype.deleteSave = function () {
+        vbaSaves.deleteSave.apply(vbaSaves, arguments);
+        this.reset();
+    };
     
     module.exports = VBAUI;
     

@@ -2,7 +2,7 @@
     "use strict";
     
     
-    let saveAs = require("./saveAs").saveAs;
+    var saveAs = require("./saveAs").saveAs;
     
     function VBASaves(emscriptenModule) {
         this.emscriptenModule = emscriptenModule;
@@ -24,7 +24,7 @@
     VBASaves.prototype.getSave = function (romCode) {
         // If no rom code supplied, use the currently loaded game
         romCode = romCode || this.getRomCode();
-        let base64 = localStorage[this.localStoragePrefix + romCode];
+        var base64 = localStorage[this.localStoragePrefix + romCode];
         if (!base64) {
             return new Uint8Array(0);
         }
@@ -38,9 +38,9 @@
     };
 
     VBASaves.prototype.softCommit = function (pointer8, size) {
-        let heapu8 = this.emscriptenModule.HEAPU8;
-        let bufu8 = new Uint8Array(size);
-        for (let i = 0; i < size; i++) {
+        var heapu8 = this.emscriptenModule.HEAPU8;
+        var bufu8 = new Uint8Array(size);
+        for (var i = 0; i < size; i++) {
             bufu8[i] = heapu8[pointer8 + i];
         }
         this.unsafeSaveBuffer = bufu8;
@@ -56,14 +56,14 @@
     };
 
     VBASaves.prototype.restoreSaveMemory = function (pointer8, targetBufferSize) {
-        let save = this.getSave();
-        let heap8 = this.emscriptenModule.HEAPU8;
+        var save = this.getSave();
+        var heap8 = this.emscriptenModule.HEAPU8;
 
         if (save.byteLength !== targetBufferSize) {
             throw new Error("Incompatible save size");
         }
 
-        for (let i = 0; i < targetBufferSize; i++) {
+        for (var i = 0; i < targetBufferSize; i++) {
             heap8[pointer8 + i] = save[i];
         }
 
@@ -91,7 +91,7 @@
         // changed in a while.
         if (this.unsafeSaveBuffer) {
             console.log("[SAVE] hard commit timer reset");
-            let tempUnsafeSaveBuffer = this.unsafeSaveBuffer;
+            var tempUnsafeSaveBuffer = this.unsafeSaveBuffer;
             this.unsafeSaveBuffer = null;
             clearTimeout(this.safeSaveTimeout);
             this.safeSaveTimeout = setTimeout(function () {
@@ -119,12 +119,12 @@
     };
     
     VBASaves.prototype.onFileImportInputChanged = function (e, callback) {
-        let binaryFile = e.currentTarget.files[0];
+        var binaryFile = e.currentTarget.files[0];
         var fr = new FileReader();
         if (FileReader && binaryFile) {
             fr.readAsArrayBuffer(binaryFile);
             fr.onload = function () {
-                let romCode = binaryFile.name.substr(0, 4);
+                var romCode = binaryFile.name.substr(0, 4);
                 if (romCode.search(/^[A-Z]{4}$/) === -1) {
                     romCode = window.prompt("What is the ROM code of the game that this save file belongs to?");
                 }

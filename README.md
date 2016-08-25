@@ -7,13 +7,13 @@ and localStorage (so IE11 and Safari private won't work). Input doesn't work on 
 
 # Build
 
-Install nodejs and emscripten. Ensure that `node` and `emcc` are on your path.
+Install nodejs and emscripten. Ensure that `node` and `emcc` are on your path. `npm install`.
 
-Run `node build`. Open `index.html`.
+Run `node build --opt` then `webpack`. Open `build/index.html`.
 
 ## TODOs
  * Fix input on IE
- * Keep aspect ratio
+ * Maintain constant aspect ratio
  * Touch controls
  * Loading screen
  * Enable frameskip on slow devices
