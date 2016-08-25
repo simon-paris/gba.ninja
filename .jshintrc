@@ -21,5 +21,11 @@
     "unused": true,
     "loopfunc": true,
     "globals":{
+        "VBAInterface": true,
+        "vbaGraphics": true,
+        "vbaInput": true,
+        "vbaSaves": true,
+        "vbaUI": true,
+        "vbaSound": true
     }
 }

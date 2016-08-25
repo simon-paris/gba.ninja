@@ -139,7 +139,7 @@
     };
     
     
-    VBASaves.prototype.listSaves = function (e) {
+    VBASaves.prototype.listSaves = function () {
         return Object.keys(localStorage).filter(function (v) {
             return v.indexOf(this.localStoragePrefix) === 0;
         }.bind(this)).map(function (v) {

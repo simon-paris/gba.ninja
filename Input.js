@@ -100,11 +100,11 @@
     };
     
     VBAInput.prototype.loadBindings = function () {
-        this.bindings = JSON.parse(localStorage["VBABindings"] || "null");
+        this.bindings = JSON.parse(localStorage.VBABindings || "null");
     };
     
     VBAInput.prototype.saveBindings = function () {
-        localStorage["VBABindings"] = JSON.stringify(this.bindings); 
+        localStorage.VBABindings = JSON.stringify(this.bindings); 
     };
     
     VBAInput.prototype.resetBindings = function () {
@@ -163,7 +163,7 @@
             res |= 512;
         }
 
-        // disallow L+R or U+D of being pressed at the same time
+        // disallow L+R or U+D from being pressed at the same time
         if ((res & 48) === 48) {
             res &= ~48;
         }

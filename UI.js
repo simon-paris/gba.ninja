@@ -19,10 +19,11 @@
         this.el.innerHTML = this.initialHTML;
         this.currentlyBinding = false;
         
+        var i;
         var savesEl = window.document.querySelector(".saves-list");
         var savesHTML = "<table>";
         var saves = window.vbaSaves.listSaves();
-        for (var i = 0; i < saves.length; i++) {
+        for (i = 0; i < saves.length; i++) {
             savesHTML += "<tr>" +
                 "<td>" + saves[i].romCode + "</td>" +
                 "<td><a class='export-save-button' onclick='vbaUI.exportSave(\"" + saves[i].romCode + "\")' href='javascript:void 0;' data-rom-code='" + saves[i].romCode + "'>Export</a></td>" +
@@ -38,7 +39,7 @@
         var keyboardBindingsEl = window.document.querySelector(".keyboard-bindings");
         var keyboardBindingsHTML = "<table>";
         var keyboardBindings = window.vbaInput.listBindings();
-        for (var i = 0; i < keyboardBindings.length; i++) {
+        for (i = 0; i < keyboardBindings.length; i++) {
             keyboardBindingsHTML += "<tr>" +
                 "<td>" + keyboardBindings[i].friendlyName + "</td>" +
                 "<td>" + keyboardBindings[i].codes.join(", ").replace(/Key/im, "Key ").replace(/Arrow/im, "Arrow ") + "</td>" +

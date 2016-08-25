@@ -5,6 +5,8 @@ var VBASaves = require("./Saves");
 var VBAInput = require("./Input");
 var VBAUI = require("./UI");
 
+var isRunning = false;
+
 window.init = function () {
 
     document.querySelector(".pixels").innerHTML = '<canvas width="240" height="160"></canvas>';
@@ -41,8 +43,9 @@ window.start = function () {
     VBAInterface.VBA_start();
 
     var GBA_CYCLES_PER_SECOND = 16777216;
-    window.isRunning = true;
+    isRunning = true;
     var lastFrameTime = Date.now();
+    
     function eachFrame () {
         var currentTime = Date.now();
         var deltaTime = currentTime - lastFrameTime;
@@ -67,12 +70,12 @@ window.start = function () {
             document.querySelector(".pixels").style.display = "none";
             document.querySelector(".ui").style.display = "block";
         }
-    };
+    }
     eachFrame();
 
 };
 
 window.scheduleStop = function () {
-    window.isRunning = false;
+    isRunning = false;
 };
 
