@@ -3,11 +3,8 @@
 
 #include <emscripten.h>
 
-/**
- * Destructor. Free the resources allocated by the sound driver.
- */
-EmscriptenSoundDriver::~EmscriptenSoundDriver() {
-}
+
+EmscriptenSoundDriver::~EmscriptenSoundDriver() {}
 
 
 bool EmscriptenSoundDriver::init(long sampleRate) {
