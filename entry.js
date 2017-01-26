@@ -12,7 +12,14 @@ window.init = function () {
     document.querySelector(".pixels").innerHTML = '<canvas width="240" height="160"></canvas>';
 
     window.vbaGraphics = new VBAGraphics(window.Module, document.querySelector("canvas"));
-    window.vbaGraphics.initScreen();
+    let res = window.vbaGraphics.initScreen();
+    
+    if (!res) {
+        window.vbaGraphics = null;
+        document.querySelector(".pixels").innerHTML = "<p style='margin: 20px;'>You need to enable WebGL</p>";
+        return;
+    }
+    
     window.vbaGraphics.drawFrame();
 
     window.vbaSound = new VBASound(window.Module);
@@ -32,7 +39,12 @@ window.start = function () {
     if (window.isRunning) {
         throw new Error("Already started");
     }
-
+    
+    if (!window.vbaGraphics) {
+        // webgl is disabled
+        return;
+    }
+    
     document.querySelector(".pixels").style.display = "block";
     document.querySelector(".ui").style.display = "none";
 

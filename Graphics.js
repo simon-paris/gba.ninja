@@ -121,7 +121,11 @@
         // Get webgl
         this.gl = this.canvas.getContext("webgl", {alpha: false}) ||
             this.canvas.getContext("experimental-webgl", {alpha: false});
-
+        
+        if (!this.gl) {
+            return false;
+        }
+        
         // Set up assets
         this.shaderProgram = util.createProgramFromScripts(this.gl, "2d-vertex-shader", "2d-fragment-shader");
         this.texture = util.createTexture(this.gl, TEXTURE_SIZE);
@@ -130,6 +134,8 @@
         // Get locations
         this.positionLocation = this.gl.getAttribLocation(this.shaderProgram, "a_position");
         this.textureSamplerLocation = this.gl.getUniformLocation(this.shaderProgram, "u_sampler");
+        
+        return true;
     };
 
 
