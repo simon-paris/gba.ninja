@@ -63,6 +63,7 @@
         var audioBuffers = [];
         var numChannels = event.outputBuffer.numberOfChannels;
         var requiredSamples = event.outputBuffer.length;
+        var deadlineResult = 1; // Hit
         var i, channel;
 
         for (i = 0; i < numChannels; i++) {
@@ -73,6 +74,7 @@
             for (channel = 0; channel < numChannels; channel++) {
                 if (this.audioSpareReadPtr === this.audioSpareWritePtr) {
                     audioBuffers[channel][i] = 0;
+                    deadlineResult = 0; // Miss
                 } else {
                     audioBuffers[channel][i] = this.audioSpareSamplesRingBuffer[this.audioSpareReadPtr] / 0x4000;
                     this.audioSpareReadPtr++;
@@ -82,6 +84,15 @@
                 }
             }
         }
+        
+        window.audioDeadlineResultsThisSecond.push(deadlineResult);
+
+        var millis = requiredSamples / this.getSampleRate();
+        var frameNum = window.frameNum;
+        setTimeout(function () {
+            window.doTimestep(frameNum + 1);
+        }, 0);
+        
 
     };
 

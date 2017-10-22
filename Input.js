@@ -53,21 +53,35 @@
         codes: ["Shift"],
         keyCodes: [16],
     };
-        
+    defaultBindings.PERF_STATS = {
+        friendlyName: "Performance Stats",
+        codes: ["Backquote"],
+        keyCodes: [192],
+    };
     
+
     function VBAInput() {
         
         
         this.downCodes = {};
         this.downKeyCodes = {};
         window.addEventListener("keydown", function (e) {
+            var wasPerfKeyDownBefore = this.isKeyDown(this.bindings.PERF_STATS);
             this.downCodes[e.code] = 1;
             this.downKeyCodes[e.keyCode] = 1;
+            var isPerfKeyDownNow = this.isKeyDown(this.bindings.PERF_STATS);
+            if (!wasPerfKeyDownBefore && isPerfKeyDownNow) {
+                window.doPerfCalc();
+            }
             return false;
         }.bind(this));
         window.addEventListener("keyup", function (e) {
+            var wasPerfKeyDownBefore = this.isKeyDown(this.bindings.PERF_STATS);
             this.downCodes[e.code] = 0;
             this.downKeyCodes[e.keyCode] = 0;
+            if (wasPerfKeyDownBefore) {
+                window.doPerfCalc();
+            }
             return false;
         }.bind(this));
         

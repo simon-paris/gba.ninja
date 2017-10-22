@@ -2,6 +2,7 @@
 <html>
     <head>
         
+        <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
         
         <title>gba.ninja</title>
@@ -361,6 +362,18 @@
                 color: #828282;
                 
             }
+            .perf {
+                position: fixed;
+                bottom: 0;
+                color: white;
+                padding: 4px;
+                margin: 4px;
+                background-color: rgba(0, 0, 0, 0.5);
+            }
+            .perf-left {
+                display: inline-block;
+                width: 200px;
+            }
         </style>
         <div class="pixels"></div>
         <div style="display: none;" class="ui">
@@ -369,24 +382,33 @@
                 <h2>Load a ROM</h2>
                 <div style="padding-bottom: 10px;">
                     <label class="btn" for="load-rom-from-file">From File</label>
-                    <input id="load-rom-from-file" type="file" onchange="window.loadRomFromFile(event);window.onReady('cartridge', function () {start()});"/>
+                    <input id="load-rom-from-file" type="file" onchange="window.loadRomFromFile(event);window.onReady('cartridge', function () {window.start()});"/>
                 </div>
-<!--
-                <div>
-                    <label class="btn" for="load-rom-from-url" onclick="window.loadCartridgeFromURL(event);window.onReady('cartridge', function () {start()});">From URL</label>
-                    <input id="load-rom-from-url" type="text"/>
-                </div>
--->
+                <!--
+                    <div>
+                        <label class="btn" for="load-rom-from-url" onclick="window.loadCartridgeFromURL(event);window.onReady('cartridge', function () {start()});">From URL</label>
+                        <input id="load-rom-from-url" type="text"/>
+                    </div>
+                -->
                 <h2>Saves</h2>
                 <p class="saves-list"></p>
                 <div>
                     <label class="btn" for="import-save-file">Import Save File</label>
-                    <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event, vbaUI.reset.bind(vbaUI));"/>
+                    <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event, window.vbaUI.reset.bind(vbaUI));"/>
                 </div>
                 <h2>Keyboard Bindings</h2>
                 <p class="keyboard-bindings"></p>
-                <button class="btn reset-bindings-button" onclick="vbaUI.resetBindings();">Reset Bindings</button>
+                <button class="btn reset-bindings-button" onclick="window.vbaUI.resetBindings();">Reset Bindings</button>
             </div>
+        </div>
+        <div class="perf" style="display: none;">
+            <span class="perf-left">Speed</span><span class="perf-right perf-percentage"></span><br/>
+            <span class="perf-left">Framerate</span><span class="perf-right perf-framerate"></span><br/>
+            <span class="perf-left">Cycles/Second</span><span class="perf-right perf-cycles"></span><br/>
+            <span class="perf-left">Timesteps/Second</span><span class="perf-right perf-timesteps"></span><br/>
+            <span class="perf-left">Min Audio Lead</span><span class="perf-right perf-audio-samples-ahead"></span><br/>
+            <span class="perf-left">Render Deadline Hits</span><span class="perf-right perf-render-deadlines"></span><br/>
+            <span class="perf-left">Audio Deadline Hits</span><span class="perf-right perf-audio-deadlines"></span><br/>
         </div>
     </body>
 </html>

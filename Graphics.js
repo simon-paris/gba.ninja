@@ -98,7 +98,7 @@
         this.canvas = canvas;
         
         this.totalFrames = 0;
-        this.lastFrameTime = (window.performance.now() / 1000);
+        this.lastFrameTime = window.performance.now();
         
         // Webgl assets
         this.gl = null;
@@ -142,7 +142,9 @@
 
     VBAGraphics.prototype.drawGBAFrame = function  (gbaPointer8) {
         
-        this.lastFrameTime = (window.performance.now() / 1000);
+        var deltaTime = window.performance.now() - this.lastFrameTime;
+        window.renderTimesThisSecond.push(deltaTime);
+        this.lastFrameTime = window.performance.now();
         
         var gbaPointer16 = gbaPointer8 / 2;
         var gbaHeap16 = this.emscriptenModule.HEAP16;
@@ -171,7 +173,7 @@
 
         // Draw
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
-
+		
     };
 
 

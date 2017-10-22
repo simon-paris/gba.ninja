@@ -124,11 +124,13 @@
         if (FileReader && binaryFile) {
             fr.readAsArrayBuffer(binaryFile);
             fr.onload = function () {
+				var romCodeValidator = /^[A-Z]{4}$/;
                 var romCode = binaryFile.name.substr(0, 4);
-                if (romCode.search(/^[A-Z]{4}$/) === -1) {
-                    romCode = window.prompt("What is the ROM code of the game that this save file belongs to?");
+                if (romCode.search(romCodeValidator) === -1) {
+                    romCode = window.prompt("What is the ROM code of the game that this save file belongs to? (4 uppercase letters)");
+					if (!romCode) return;
                 }
-                if (romCode.search(/^[A-Z]{4}$/) === -1) {
+                if (romCode.search(romCodeValidator) === -1) {
                     alert("Invalid ROM code.");
                 } else {
                     this.importSave(romCode, new Uint8Array(fr.result));

@@ -42,7 +42,11 @@
         for (i = 0; i < keyboardBindings.length; i++) {
             keyboardBindingsHTML += "<tr>" +
                 "<td>" + keyboardBindings[i].friendlyName + "</td>" +
-                "<td>" + keyboardBindings[i].codes.join(", ").replace(/Key/im, "Key ").replace(/Arrow/im, "Arrow ") + "</td>" +
+                "<td>" + keyboardBindings[i].codes.join(", ")
+                    .replace(/Key/im, "Key ").replace(/Arrow/im, "Arrow ")
+                    .replace(/Digit/im, "Digit ").replace(/Numpad/im, "Numpad ")
+                    .replace(/Left/im, " Left").replace(/Right/im, " Right")
+                     + "</td>" +
                 "<td><a class='rebind-key-button' onclick='vbaUI.startRebinding(this, \"" + keyboardBindings[i].name + "\")' href='javascript:void 0;'>Rebind</a></td>" +
             "</tr>";
         }
@@ -66,6 +70,9 @@
     
     VBAUI.prototype.startRebinding = function (el, name) {
         this.currentlyBinding = name;
+        this.el.querySelectorAll(".rebind-key-button").forEach(function (el) {
+            el.innerText = "Rebind";
+        });
         el.innerText = "Rebinding...";
     };
     
