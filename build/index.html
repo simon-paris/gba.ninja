@@ -307,15 +307,20 @@
         <style>
             html, body {
                 font-family: sans-serif;
+                background-color: #e7dbff;
             }
             .ui {
-                padding: 20px;
+                color: #4d2990;
             }
-            .ui-border {
-                padding: 20px;
-                border: 3px solid #3a3a3a;
+            .ui-border-1 {
                 float: left;
-                margin-bottom: 50px;
+                border: transparent 20px solid;
+            }
+            .ui-border-2 {
+                padding: 20px;
+                border: 3px solid #4e2aa7;
+                background-color: white;
+                float: left;
             }
             h2 {
                 font-size: 14px;
@@ -325,7 +330,7 @@
             }
             input[type=file] {
                 position: absolute;
-                left: -1000000000px;
+                left: -1000000px;
             }
             #load-rom-from-url {
                 height: 23px;
@@ -354,12 +359,12 @@
             }
             td {
                 padding: 5px 15px;
-                border: 2px solid #3a3a3a;
+                border: 2px solid #4e2aa7;
                 border-top: none;
                 border-bottom: none;
             }
             a {
-                color: #828282;
+                color: #a89be8;
                 
             }
             .perf {
@@ -377,28 +382,30 @@
         </style>
         <div class="pixels"></div>
         <div style="display: none;" class="ui">
-            <div class="ui-border">
-                <img src="./logo.png" style="height: 50px;"/>
-                <h2>Load a ROM</h2>
-                <div style="padding-bottom: 10px;">
-                    <label class="btn" for="load-rom-from-file">From File</label>
-                    <input id="load-rom-from-file" type="file" onchange="window.loadRomFromFile(event);window.onReady('cartridge', function () {window.start()});"/>
-                </div>
-                <!--
-                    <div>
-                        <label class="btn" for="load-rom-from-url" onclick="window.loadCartridgeFromURL(event);window.onReady('cartridge', function () {start()});">From URL</label>
-                        <input id="load-rom-from-url" type="text"/>
+            <div class="ui-border-1">
+                <div class="ui-border-2">
+                    <img src="./logo.png" style="height: 50px;"/>
+                    <h2>Load a ROM</h2>
+                    <div style="padding-bottom: 10px;">
+                        <label class="btn" for="load-rom-from-file">From File</label>
+                        <input id="load-rom-from-file" type="file" onchange="window.loadRomFromFile(event);window.onReady('cartridge', function () {window.start()});"/>
                     </div>
-                -->
-                <h2>Saves</h2>
-                <p class="saves-list"></p>
-                <div>
-                    <label class="btn" for="import-save-file">Import Save File</label>
-                    <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event, window.vbaUI.reset.bind(vbaUI));"/>
+                    <!--
+                        <div>
+                            <label class="btn" for="load-rom-from-url" onclick="window.loadCartridgeFromURL(event);window.onReady('cartridge', function () {start()});">From URL</label>
+                            <input id="load-rom-from-url" type="text"/>
+                        </div>
+                    -->
+                    <h2>Saves</h2>
+                    <p class="saves-list"></p>
+                    <div>
+                        <label class="btn" for="import-save-file">Import Save File</label>
+                        <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event, window.vbaUI.reset.bind(vbaUI));"/>
+                    </div>
+                    <h2>Keyboard Bindings</h2>
+                    <p class="keyboard-bindings"></p>
+                    <button class="btn reset-bindings-button" onclick="window.vbaUI.resetBindings();">Reset Bindings</button>
                 </div>
-                <h2>Keyboard Bindings</h2>
-                <p class="keyboard-bindings"></p>
-                <button class="btn reset-bindings-button" onclick="window.vbaUI.resetBindings();">Reset Bindings</button>
             </div>
         </div>
         <div class="perf" style="display: none;">
