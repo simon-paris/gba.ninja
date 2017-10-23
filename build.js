@@ -60,15 +60,20 @@
         "-DNO_DEBUGGER",
         "-DFINAL_BUILD",
         "-DFINAL_VERSION",
+		"-s MODULARIZE=1",
+		"-s EXPORT_NAME=\"'gbaninja'\"",
         opt ? "" : "-s ASSERTIONS=2",
         "-s NO_FILESYSTEM=1",
         "-s NO_EXIT_RUNTIME=1",
         "-s TOTAL_MEMORY=67108864",
     ].filter(function (v) {return v;}).join(" ");
-    var command = `emcc ${options} ${files.join(" ")} -o build/emu.js`;
+    var command = `emcc ${options} ${files.join(" ")} -o ./emu.js`;
     
     require("child_process").execSync(command);
     
+	// Fix stupid shit in emscripten
+	let str = require("fs").readFileSync("./emu.js").toString().replace(/require\("fs"\)/g, "(function () { throw new Error('cant use fs in browser')}())");
+	require("fs").writeFileSync("./emu.js", str);
     
 }());
 

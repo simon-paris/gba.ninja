@@ -7,11 +7,13 @@ var VBAUI = require("./UI");
 
 var isRunning = false;
 
+
+
 window.init = function () {
 
     document.querySelector(".pixels").innerHTML = '<canvas width="240" height="160"></canvas>';
 
-    window.vbaGraphics = new VBAGraphics(window.Module, document.querySelector("canvas"));
+    window.vbaGraphics = new VBAGraphics(window.gbaninja, document.querySelector("canvas"));
     var res = window.vbaGraphics.initScreen();
     
     if (!res) {
@@ -22,9 +24,9 @@ window.init = function () {
     
     window.vbaGraphics.drawFrame();
 
-    window.vbaSound = new VBASound(window.Module);
-    window.vbaSaves = new VBASaves(window.Module);
-    window.vbaInput = new VBAInput(window.Module);
+    window.vbaSound = new VBASound(window.gbaninja);
+    window.vbaSaves = new VBASaves(window.gbaninja);
+    window.vbaInput = new VBAInput(window.gbaninja);
     window.vbaUI = new VBAUI(document.querySelector(".ui"));
 
     document.querySelector(".pixels").style.display = "none";
@@ -55,6 +57,10 @@ window.start = function () {
     onResize();
 
     VBAInterface.VBA_start();
+
+    gtag("event", "run_rom", {
+        event_label: window.vbaSaves.getRomCode(),
+    });
 
     isRunning = true;    
     window.focusCheck();
@@ -143,9 +149,9 @@ window.doPerfCalc = function () {
         document.querySelector(".perf").style.display = "block";
 
         var sumCycles = window.cyclesThisSecond.reduce(function (a, b) { return a + b; }, 0);
-        var sumAudioSamples = window.spareAudioSamplesThisSecond.reduce(function (a, b) { return Math.min(a, b); }, Infinity);
-        if (sumAudioSamples === Infinity) {
-            sumAudioSamples = 0;
+        var minAudioSamples = window.spareAudioSamplesThisSecond.reduce(function (a, b) { return Math.min(a, b); }, Infinity);
+        if (minAudioSamples === Infinity) {
+            minAudioSamples = 0;
         }
         var audioDeadlineResults = window.audioDeadlineResultsThisSecond.reduce(function (a, b) {
             if (b) {
@@ -163,11 +169,11 @@ window.doPerfCalc = function () {
             }
             return a;
         }, {hit: 0, miss: 0});
-        document.querySelector(".perf-timesteps").innerText = Math.floor(cyclesThisSecond.length / (deltaTime / 1000));
-        document.querySelector(".perf-framerate").innerText = Math.floor(renderTimesThisSecond.length / (deltaTime / 1000));
-        document.querySelector(".perf-cycles").innerText = Math.floor(sumCycles / 1000 / (deltaTime / 1000)) + "K";
+        document.querySelector(".perf-timesteps").innerText = Math.round(cyclesThisSecond.length / (deltaTime / 1000));
+        document.querySelector(".perf-framerate").innerText = Math.round(renderTimesThisSecond.length / (deltaTime / 1000));
+        document.querySelector(".perf-cycles").innerText = Math.round(sumCycles / 1000 / (deltaTime / 1000)) + "K";
         document.querySelector(".perf-percentage").innerText = (sumCycles / (GBA_CYCLES_PER_SECOND * (deltaTime / 1000)) * 100).toFixed(1) + "%";
-        document.querySelector(".perf-audio-samples-ahead").innerText = Math.floor(sumAudioSamples / window.spareAudioSamplesThisSecond.length || 0);
+        document.querySelector(".perf-audio-samples-ahead").innerText = Math.floor(minAudioSamples / window.vbaSound.getSampleRate() * 1000) + "ms";
         document.querySelector(".perf-audio-deadlines").innerText = audioDeadlineResults.hit + " / " + (audioDeadlineResults.hit + audioDeadlineResults.miss);
         document.querySelector(".perf-render-deadlines").innerText = renderDeadlineResults.hit + " / " + (renderDeadlineResults.hit + renderDeadlineResults.miss);
         
@@ -190,4 +196,6 @@ window.doPerfCalc = function () {
 window.scheduleStop = function () {
     isRunning = false;
 };
+
+window.gbaninja = require("./emu.js")(window.gbaninja);
 

@@ -113,19 +113,26 @@
         this.saveBindings();
     };
     
-    VBAInput.prototype.loadBindings = function () {
-        this.bindings = JSON.parse(localStorage.VBABindings || "null");
+    VBAInput.prototype.loadBindings = function (antiInfiniteLoopJustInCase) {
+        this.bindings = JSON.parse(localStorage.VBABindings || "null") || defaultBindings;
+        if (Object.keys(this.bindings).sort().join() !== Object.keys(defaultBindings).sort().join()) {
+            // Binding keys are wrong
+            if (antiInfiniteLoopJustInCase) {
+                return;
+            }
+            this.resetBindings(true);
+        }
     };
     
     VBAInput.prototype.saveBindings = function () {
         localStorage.VBABindings = JSON.stringify(this.bindings); 
     };
     
-    VBAInput.prototype.resetBindings = function () {
+    VBAInput.prototype.resetBindings = function (antiInfiniteLoopJustInCase) {
         this.bindings = defaultBindings;
         // Lazy clone bindings object
         this.saveBindings();
-        this.loadBindings();
+        this.loadBindings(antiInfiniteLoopJustInCase);
     };
     
     VBAInput.prototype.isKeyDown = function (binding) {

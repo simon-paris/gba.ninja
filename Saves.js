@@ -78,7 +78,7 @@
                 this.unsafeSaveTimeout = setTimeout(function () {
                     this.unsafeSaveTimeout = null;
                     if (VBAInterface.VBA_get_emulating()) {
-                        console.log("[SAVE] soft commit done");
+                        console.log("[SAVE] changes detected");
                         VBAInterface.VBA_emuWriteBattery();
                         VBAInterface.VBA_reset_systemSaveUpdateCounter();
                     }
@@ -90,7 +90,6 @@
         // Commit the save to localstorage if it hasn't been
         // changed in a while.
         if (this.unsafeSaveBuffer) {
-            console.log("[SAVE] hard commit timer reset");
             var tempUnsafeSaveBuffer = this.unsafeSaveBuffer;
             this.unsafeSaveBuffer = null;
             clearTimeout(this.safeSaveTimeout);
@@ -98,9 +97,9 @@
                 this.safeSaveTimeout = null;
                 if (VBAInterface.VBA_get_emulating()) {
                     this.hardCommit(this.getRomCode(), tempUnsafeSaveBuffer);
-                    console.log("[SAVE] hard commit done");
+                    console.log("[SAVE] changes committed");
                 } else {
-                    console.log("[SAVE] abandoned hard commit, emulator not running");
+                    console.log("[SAVE] changes discarded, emulator not running");
                 }
             }.bind(this), 70);
         }

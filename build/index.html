@@ -6,7 +6,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
         
         <title>gba.ninja</title>
-        
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-45495852-6"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-45495852-6');
+        </script>
+
         <style>
             html, body {
                 width:  100%;
@@ -123,7 +132,7 @@
             };
             
             
-            window.Module = {
+            window.gbaninja = {
                 onRuntimeInitialized: function() {
                     triggerReady("emu");
                 },
@@ -147,87 +156,87 @@
             var VBAInterface = {};
             
             VBAInterface.VBA_get_emulating = function () {
-                return Module.ccall("VBA_get_emulating", "int", [], []);
+                return gbaninja.ccall("VBA_get_emulating", "int", [], []);
             };
             
             VBAInterface.VBA_start = function () {
-                return Module.ccall("VBA_start", "int", [], []);
+                return gbaninja.ccall("VBA_start", "int", [], []);
             };
             
             VBAInterface.VBA_do_cycles = function (cycles) {
-                return Module.ccall("VBA_do_cycles", "int", ["int"], [cycles]);
+                return gbaninja.ccall("VBA_do_cycles", "int", ["int"], [cycles]);
             };
             
             VBAInterface.VBA_stop = function () {
-                return Module.ccall("VBA_stop", "int", [], []);
+                return gbaninja.ccall("VBA_stop", "int", [], []);
             };
             
             VBAInterface.VBA_get_bios = function () {
-                return Module.ccall("VBA_get_bios", "int", [], []);
+                return gbaninja.ccall("VBA_get_bios", "int", [], []);
             };
             
             VBAInterface.VBA_get_rom = function () {
-                return Module.ccall("VBA_get_rom", "int", [], []);
+                return gbaninja.ccall("VBA_get_rom", "int", [], []);
             };
             
             VBAInterface.VBA_get_internalRAM = function () {
-                return Module.ccall("VBA_get_internalRAM", "int", [], []);
+                return gbaninja.ccall("VBA_get_internalRAM", "int", [], []);
             };
             
             VBAInterface.VBA_get_workRAM = function () {
-                return Module.ccall("VBA_get_workRAM", "int", [], []);
+                return gbaninja.ccall("VBA_get_workRAM", "int", [], []);
             };
             
             VBAInterface.VBA_get_paletteRAM = function () {
-                return Module.ccall("VBA_get_paletteRAM", "int", [], []);
+                return gbaninja.ccall("VBA_get_paletteRAM", "int", [], []);
             };
             
             VBAInterface.VBA_get_vram = function () {
-                return Module.ccall("VBA_get_vram", "int", [], []);
+                return gbaninja.ccall("VBA_get_vram", "int", [], []);
             };
             
             VBAInterface.VBA_get_pix = function () {
-                return Module.ccall("VBA_get_pix", "int", [], []);
+                return gbaninja.ccall("VBA_get_pix", "int", [], []);
             };
             
             VBAInterface.VBA_get_oam = function () {
-                return Module.ccall("VBA_get_oam", "int", [], []);
+                return gbaninja.ccall("VBA_get_oam", "int", [], []);
             };
             
             VBAInterface.VBA_get_ioMem = function () {
-                return Module.ccall("VBA_get_ioMem", "int", [], []);
+                return gbaninja.ccall("VBA_get_ioMem", "int", [], []);
             };
             
             VBAInterface.VBA_get_systemColorMap16 = function () {
-                return Module.ccall("VBA_get_systemColorMap16", "int", [], []);
+                return gbaninja.ccall("VBA_get_systemColorMap16", "int", [], []);
             };
             
             VBAInterface.VBA_get_systemColorMap32 = function () {
-                return Module.ccall("VBA_get_systemColorMap32", "int", [], []);
+                return gbaninja.ccall("VBA_get_systemColorMap32", "int", [], []);
             };
             
             VBAInterface.VBA_get_systemFrameSkip = function () {
-                return Module.ccall("VBA_get_systemFrameSkip", "int", [], []);
+                return gbaninja.ccall("VBA_get_systemFrameSkip", "int", [], []);
             };
             
             VBAInterface.VBA_set_systemFrameSkip = function (n) {
-                return Module.ccall("VBA_set_systemFrameSkip", "int", ["int"], [n]);
+                return gbaninja.ccall("VBA_set_systemFrameSkip", "int", ["int"], [n]);
             };
             
             VBAInterface.VBA_get_systemSaveUpdateCounter = function () {
-                return Module.ccall("VBA_get_systemSaveUpdateCounter", "int", [], []);
+                return gbaninja.ccall("VBA_get_systemSaveUpdateCounter", "int", [], []);
             };
             
             VBAInterface.VBA_reset_systemSaveUpdateCounter = function () {
-                return Module.ccall("VBA_reset_systemSaveUpdateCounter", "int", [], []);
+                return gbaninja.ccall("VBA_reset_systemSaveUpdateCounter", "int", [], []);
             };
             
             VBAInterface.VBA_emuWriteBattery = function () {
-                return Module.ccall("VBA_emuWriteBattery", "int", [], []);
+                return gbaninja.ccall("VBA_emuWriteBattery", "int", [], []);
             };
             
             VBAInterface.VBA_agbPrintFlush = function () {
-                return Module.ccall("VBA_agbPrintFlush", "int", [], []);
+                return gbaninja.ccall("VBA_agbPrintFlush", "int", [], []);
             };
             
             
@@ -248,7 +257,7 @@
             };
             
             VBAInterface.copyRomToMemory = function (startPointer8) {
-                var gbaHeap8 = Module.HEAP8;
+                var gbaHeap8 = gbaninja.HEAP8;
                 var byteLength = romBuffer8.byteLength;
                 for (var i = 0; i < byteLength; i++) {
                     gbaHeap8[startPointer8 + i] = romBuffer8[i];
@@ -296,14 +305,14 @@
             };
             
             VBAInterface.dbgOutput = function (textPointer8, unknownPointer8) {
-                return console.log("At dbgOutput", textPointer8, unknownPointer8);
+                return console.log("dbgOutput", textPointer8, unknownPointer8);
             };
             
         </script>
         <script src="./bundle.js"></script>
-        <script src="./emu.js"></script>
     </head>
     <body>
+
         <style>
             html, body {
                 font-family: sans-serif;
@@ -318,9 +327,12 @@
             }
             .ui-border-2 {
                 padding: 20px;
-                border: 3px solid #4e2aa7;
+                border: 13px solid #4e2aa7;
                 background-color: white;
                 float: left;
+                border-left-width: 5px;
+                border-right-width: 5px;
+                position: relative;
             }
             h2 {
                 font-size: 14px;
@@ -365,7 +377,9 @@
             }
             a {
                 color: #a89be8;
-                
+            }
+            .report-bug-button {
+                font-size: 12px;
             }
             .perf {
                 position: fixed;
@@ -405,6 +419,9 @@
                     <h2>Keyboard Bindings</h2>
                     <p class="keyboard-bindings"></p>
                     <button class="btn reset-bindings-button" onclick="window.vbaUI.resetBindings();">Reset Bindings</button>
+                    <div style="position: absolute; right: 10px; bottom: 10px;">
+                        <a class="report-bug-button" target="_blank" href="https://github.com/simon-paris/gba.ninja/issues">Report a bug</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -413,9 +430,9 @@
             <span class="perf-left">Framerate</span><span class="perf-right perf-framerate"></span><br/>
             <span class="perf-left">Cycles/Second</span><span class="perf-right perf-cycles"></span><br/>
             <span class="perf-left">Timesteps/Second</span><span class="perf-right perf-timesteps"></span><br/>
-            <span class="perf-left">Min Audio Lead</span><span class="perf-right perf-audio-samples-ahead"></span><br/>
-            <span class="perf-left">Render Deadline Hits</span><span class="perf-right perf-render-deadlines"></span><br/>
-            <span class="perf-left">Audio Deadline Hits</span><span class="perf-right perf-audio-deadlines"></span><br/>
+            <span class="perf-left">Min Audio Lag</span><span class="perf-right perf-audio-samples-ahead"></span><br/>
+            <span class="perf-left">On-Time Renders</span><span class="perf-right perf-render-deadlines"></span><br/>
+            <span class="perf-left">On-Time Audio Events</span><span class="perf-right perf-audio-deadlines"></span><br/>
         </div>
     </body>
 </html>
