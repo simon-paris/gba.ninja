@@ -24,10 +24,10 @@ Run `node build --opt` (the `--opt` is production mode) then `webpack`. Open `bu
 
 ## Licence
 VisualBoyAdvance - Nintendo Gameboy/GameboyAdvance (TM) emulator.
-Copyright (C) 1999-2016 VBA & VBA-M Contributors 
+Copyright (C) 1999-2017 VBA & VBA-M Contributors 
 
 Javascript Port
-Copyright (C) 2016 Simon Paris
+Copyright (C) 2016-2017 Simon Paris
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
