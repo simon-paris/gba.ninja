@@ -1,6 +1,7 @@
 (function () {
     "use strict";
     
+
     
     var saveAs = require("./saveAs").saveAs;
     
@@ -108,11 +109,11 @@
     
     VBASaves.prototype.exportSave = function (romCode) {
         var blob = new Blob([this.getSave(romCode)], {contentType: "application/octet-stream"});
-        saveAs(blob, romCode + ".sav", true);
+        saveAs(blob, romCode + " " + require("./romCodeToEnglish")(romCode) + ".sav", true);
     };
     
     VBASaves.prototype.deleteSave = function (romCode) {
-        if (confirm("Are you sure you want to delete your save for " + romCode + "?")) {
+        if (confirm("Are you sure you want to delete your save for [" + romCode + "] " + require("./romCodeToEnglish")(romCode) + "?")) {
             delete localStorage[this.localStoragePrefix + romCode];
         }
     };
@@ -123,10 +124,10 @@
         if (FileReader && binaryFile) {
             fr.readAsArrayBuffer(binaryFile);
             fr.onload = function () {
-				var romCodeValidator = /^[A-Z]{4}$/;
+				var romCodeValidator = /^[A-Z1-9]{4}/;
                 var romCode = binaryFile.name.substr(0, 4);
                 if (romCode.search(romCodeValidator) === -1) {
-                    romCode = window.prompt("What is the ROM code of the game that this save file belongs to? (4 uppercase letters)");
+                    romCode = window.prompt("What is the ROM code of the game that this save file belongs to? (4 uppercase letters or numbers)");
 					if (!romCode) return;
                 }
                 if (romCode.search(romCodeValidator) === -1) {

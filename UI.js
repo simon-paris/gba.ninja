@@ -25,7 +25,7 @@
         var saves = window.vbaSaves.listSaves();
         for (i = 0; i < saves.length; i++) {
             savesHTML += "<tr>" +
-                "<td>" + saves[i].romCode + "</td>" +
+                "<td>[" + saves[i].romCode + "] " + require("./romCodeToEnglish")(saves[i].romCode) + "</td>" +
                 "<td><a class='export-save-button' onclick='vbaUI.exportSave(\"" + saves[i].romCode + "\")' href='javascript:void 0;' data-rom-code='" + saves[i].romCode + "'>Export</a></td>" +
                 "<td><a class='delete-save-button' onclick='vbaUI.deleteSave(\"" + saves[i].romCode + "\")' href='javascript:void 0;' data-rom-code='" + saves[i].romCode + "'>Delete</a></td>" +
             "</tr>";
