@@ -61,6 +61,40 @@
                 gl_FragColor = texture2D(u_sampler, vec2(v_textureCoord.s, v_textureCoord.t));
             }
         </script>
+
+        <script>
+            window.onerror = function (messageOrEvent, source, lineno, colno, error) {
+                try {
+                    var str = "";
+                    if (typeof messageOrEvent === "object") {
+                        str += "Event: " + messageOrEvent.type + " " + messageOrEvent.message + " ;";
+                    } else {
+                        str += messageOrEvent + "; ";
+                    }
+                    if (source) {
+                        str += " Source: " + source + "; ";
+                    }
+                    if (lineno !== void 0) {
+                        str += " Line: " + lineno + "; ";
+                    }
+                    if (colno !== void 0) {
+                        str += " Col: " + colno + "; ";
+                    }
+                    if (error) {
+                        str += " Message: " + error.message + "; ";
+                        try {
+                            str += " StackTop: " + error.stack.split(/\n/g)[1].trim() + "; ";
+                        } catch (e) {}
+                    }
+                    console.log("Remote logged: ", str);
+                    gtag("event", "exception", {
+                        description: str,
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
+            };
+        </script>
         
         <script>
             
@@ -456,10 +490,10 @@
         <div class="perf" style="display: none;">
             <span class="perf-left">Game</span><span class="perf-right perf-game"></span><br/>
             <span class="perf-left">Speed</span><span class="perf-right perf-percentage"></span><br/>
-            <span class="perf-left">Timesteps/Second</span><span class="perf-right perf-timesteps"></span><br/>
-            <span class="perf-left">Audio Lag</span><span class="perf-right perf-audio-lag"></span><br/>
             <span class="perf-left">On-Time Renders</span><span class="perf-right perf-render-deadlines"></span><br/>
             <span class="perf-left">On-Time Audio Events</span><span class="perf-right perf-audio-deadlines"></span><br/>
+            <span class="perf-left">Timesteps/Second</span><span class="perf-right perf-timesteps"></span><br/>
+            <span class="perf-left">Audio Lag</span><span class="perf-right perf-audio-lag"></span><br/>
         </div>
     </body>
 </html>

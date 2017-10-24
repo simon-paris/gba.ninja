@@ -82,7 +82,7 @@ window.renderDeadlineResults = [];
 window.spareAudioSamplesThisSecond = [];
 window.audioDeadlineResultsThisSecond = [];
 
-window.doTimestep = function (frameNum) {
+window.doTimestep = function (frameNum, mustRender) {
     if (frameNum !== window.frameNum + 1) {
         return;
     }
@@ -105,10 +105,10 @@ window.doTimestep = function (frameNum) {
         
         var cyclesToDo = Math.floor(GBA_CYCLES_PER_SECOND / (1000 / clampedDeltaTime));
         if (vbaSound.spareSamplesAtLastEvent > 1000) {
-            cyclesToDo -= Math.min(Math.floor(cyclesToDo * 0.03), GBA_CYCLES_PER_SECOND / 10000);
+            cyclesToDo -= Math.floor(Math.min(cyclesToDo * 0.03, GBA_CYCLES_PER_SECOND / 10000));
         }
         if (vbaSound.spareSamplesAtLastEvent < 700) {
-            cyclesToDo += Math.min(Math.floor(cyclesToDo * 0.03), GBA_CYCLES_PER_SECOND / 10000);
+            cyclesToDo += Math.floor(Math.min(cyclesToDo * 0.03, GBA_CYCLES_PER_SECOND / 10000));
         }
         VBAInterface.VBA_do_cycles(cyclesToDo);
 
