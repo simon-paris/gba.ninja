@@ -2,8 +2,8 @@
 
 This is an emscripten port of https://github.com/visualboyadvance-m/visualboyadvance-m. It's using custom bindings to get pixel/audio/input/savegame data into & out of the emulator. (as opposed to using emstripten's built in file system and sdl support).
 
-Eventually, it should work on all browsers that support WebGL. Currently, it also requires HTML5 Audio
-and localStorage (so IE11 and Safari private won't work). Input doesn't work on IE currently.
+Eventually, it should work on all browsers that support WebGL. Currently, it also requires localStorage
+(so Safari private browsing won't work). Input doesn't work on IE currently.
 
 # Build
 
@@ -12,8 +12,6 @@ Install nodejs and emscripten. Ensure that `node` and `emcc` are on your path. `
 Run `node build --opt` then `webpack`. Open `build/index.html`.
 
 ## TODOs
- * Fix input on IE
- * Maintain constant aspect ratio
  * Touch controls
  * Loading screen
  * Enable frameskip on slow devices
@@ -21,7 +19,6 @@ Run `node build --opt` then `webpack`. Open `build/index.html`.
  * Load ROM from URL
  * Support for roms in zip files
  * Cache roms in HTML5 FS
- * Investigate busy loop elimination
  * Mute button (should disable audio emulation)
 
 ## Licence
