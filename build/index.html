@@ -316,7 +316,7 @@
         <style>
             html, body {
                 font-family: sans-serif;
-                background-color: #e7dbff;
+                background-color: #f3ddff;
             }
             .ui {
                 color: #4d2990;
@@ -327,18 +327,31 @@
             }
             .ui-border-2 {
                 padding: 20px;
-                border: 13px solid #4e2aa7;
+                border: 13px solid #aa17fe;
                 background-color: white;
                 float: left;
                 border-left-width: 5px;
                 border-right-width: 5px;
                 position: relative;
             }
+            section {
+                margin: 23px 0px;
+            }
             h2 {
+                margin: 0;
                 font-size: 14px;
+                font-style: italic;
+                text-decoration: underline;
+            }
+            table {
+                margin: 0;
             }
             p, label {
+                margin: 0;
                 font-size: 14px;
+            }
+            .gap {
+                margin-top: 10px;
             }
             input[type=file] {
                 position: absolute;
@@ -353,17 +366,17 @@
             }
             .btn {
                 display: inline-block;
-                border: 4px #7566b1 solid;
-                border-radius: 3px;
-                padding: 8px;
+                border: 1px #9b69b7 solid;
+                border-width: 4px 2px;
+                padding: 5px 13px;
                 background-color: #3a3a3a;
-                color: white;
+                color: #ece6ff;
                 font-weight: 600;
     			font-size: 13px;
             }
             .btn:hover {
                 cursor: pointer;
-                border-color: #c5b9d6;
+                border-color: #b09cbb;
                 background-color: #7a7994;
             }
             .empty-table {
@@ -375,7 +388,7 @@
             }
             td {
                 padding: 3px 11px;
-                border: 2px solid #4e2aa7;
+                border: 2px solid #aa17fe;
                 border-top: none;
                 border-bottom: none;
             }
@@ -402,31 +415,37 @@
         <div style="display: none;" class="ui">
             <div class="ui-border-1">
                 <div class="ui-border-2">
-                    <img src="./logo.png" style="height: 50px; padding-bottom: 6px;"/>
-                    <h2>Load a ROM</h2>
-                    <div style="padding-bottom: 10px;">
+                    <img src="./logo.png" style="height: 50px; padding-bottom: 6px; padding-right: 90px;"/>
+                    <section>
+                        <h2>Load a ROM</h2>
+                        <div class="gap"></div>
                         <label class="btn" for="load-rom-from-file">From File</label>
+                        <div class="gap"></div>
                         <input id="load-rom-from-file" type="file" onchange="window.loadRomFromFile(event);window.onReady('cartridge', function () {window.start()});"/>
-                    </div>
+                    </section>
                     <!--
                         <div>
                             <label class="btn" for="load-rom-from-url" onclick="window.loadCartridgeFromURL(event);window.onReady('cartridge', function () {start()});">From URL</label>
                             <input id="load-rom-from-url" type="text"/>
                         </div>
                     -->
-                    <h2>Saves</h2>
-                    <p class="saves-list"></p>
-                    <div style="padding-bottom: 10px;">
+                    <section>
+                        <h2>Saves</h2>
+                        <div class="gap"></div>
+                        <div class="saves-list"></div>
+                        <div class="gap"></div>
                         <label class="btn" for="import-save-file">Import Save File</label>
                         <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event, window.vbaUI.reset.bind(vbaUI));"/>
-                    </div>
-                    <h2>Keyboard Bindings</h2>
-                    <p class="keyboard-bindings"></p>
-                    <div style="padding-bottom: 10px;">
+                    </section>
+                    <section>
+                        <h2>Keyboard Bindings</h2>
+                        <div class="gap"></div>
+                        <div class="keyboard-bindings"></div>
+                        <div class="gap"></div>
                         <button class="btn reset-bindings-button" onclick="window.vbaUI.resetBindings();">Reset Bindings</button>
-                    </div>
+                    </section>
                     <div style="position: absolute; right: 10px; bottom: 10px;">
-                        <a class="report-bug-button" target="_blank" href="https://github.com/simon-paris/gba.ninja/issues">Report a bug</a>
+                        <a class="report-bug-button" target="_blank" href="https://github.com/simon-paris/gba.ninja/issues">report a bug</a>
                     </div>
                 </div>
             </div>
