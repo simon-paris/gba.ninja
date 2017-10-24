@@ -62,14 +62,15 @@
     
     VBAUI.prototype.onKeyDown = function (e) {
         if (this.currentlyBinding) {
-            var prev = vbaInput.bindings[this.currentlyBinding];
+            var prev = vbaInput.bindings[this.currentlyBinding].codes.join();
             vbaInput.setBinding(this.currentlyBinding, e.code, e.keyCode);
-            var current = vbaInput.bindings[this.currentlyBinding];
-            this.reset();
+            var current = vbaInput.bindings[this.currentlyBinding].codes.join();
             
-            gtag("event", "rebind_key", {
-                event_label: "Change " + this.currentlyBinding + " from " + prev.codes.join() + " to " + current.codes.join(),
+            gtag("event", "rebind_key_1", {
+                event_label: "Change " + this.currentlyBinding + " from " + prev + " to " + current,
             });
+
+            this.reset();
         }
     };
     
@@ -83,18 +84,34 @@
     };
     
     VBAUI.prototype.resetBindings = function () {
+        
+        gtag("event", "reset_bindings_1", {});
+
         vbaInput.resetBindings();
         this.reset();
     };
     
-    VBAUI.prototype.exportSave = function () {
-        vbaSaves.exportSave.apply(vbaSaves, arguments);
+    VBAUI.prototype.exportSave = function (romCode) {
+        vbaSaves.exportSave(romCode);
         this.reset();
+
+        gtag("event", "export_save_1", {
+            event_label: romCode + " " + require("./romCodeToEnglish")(romCode),
+        });
+
     };
     
-    VBAUI.prototype.deleteSave = function () {
-        vbaSaves.deleteSave.apply(vbaSaves, arguments);
-        this.reset();
+    VBAUI.prototype.deleteSave = function (romCode) {
+        if (confirm("Are you sure you want to delete your save for [" + romCode + "] " + require("./romCodeToEnglish")(romCode) + "?")) {
+            
+            vbaSaves.deleteSave(romCode);
+            this.reset();
+
+            gtag("event", "delete_save_1", {
+                event_label: romCode + " " + require("./romCodeToEnglish")(romCode),
+            });
+        }
+
     };
     
     module.exports = VBAUI;

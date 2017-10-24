@@ -110,21 +110,10 @@
     VBASaves.prototype.exportSave = function (romCode) {
         var blob = new Blob([this.getSave(romCode)], {contentType: "application/octet-stream"});
         saveAs(blob, romCode + " " + require("./romCodeToEnglish")(romCode) + ".sav", true);
-
-        gtag("event", "export_save", {
-            event_label: romCode + " " + require("./romCodeToEnglish")(romCode),
-        });
-
     };
     
     VBASaves.prototype.deleteSave = function (romCode) {
-        if (confirm("Are you sure you want to delete your save for [" + romCode + "] " + require("./romCodeToEnglish")(romCode) + "?")) {
-            delete localStorage[this.localStoragePrefix + romCode];
-        }
-
-        gtag("event", "delete_save", {
-            event_label: romCode + " " + require("./romCodeToEnglish")(romCode),
-        });
+        delete localStorage[this.localStoragePrefix + romCode];
     };
     
     VBASaves.prototype.onFileImportInputChanged = function (e, callback) {
