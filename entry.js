@@ -59,7 +59,7 @@ window.start = function () {
     VBAInterface.VBA_start();
 
     gtag("event", "run_rom", {
-        event_label: window.vbaSaves.getRomCode(),
+        event_label: window.vbaSaves.getRomCode() + " " + require("./romCodeToEnglish")(window.vbaSaves.getRomCode()),
     });
 
     isRunning = true;    
@@ -89,30 +89,31 @@ window.doTimestep = function (frameNum) {
     window.frameNum = frameNum;
 
     var currentTime = window.performance.now();
+    var deltaTime = currentTime - lastFrameTime;
+    var clampedDeltaTime = Math.min(50, deltaTime);
 
-    if (currentTime - window.lastFocusTime > 10) {
+    if (currentTime - window.lastFocusTime > 100 || deltaTime < 0.1) {
         window.animationFrameRequest = window.requestAnimationFrame(function () {
             window.doTimestep(frameNum + 1);
         });
         return;
     }
-
-    var deltaTime = currentTime - lastFrameTime;
-    var clampedDeltaTime = Math.min(50, deltaTime);
     lastFrameTime = currentTime;
 
     if (isRunning) {
         vbaSaves.checkSaves();
         
         var cyclesToDo = Math.floor(GBA_CYCLES_PER_SECOND / (1000 / clampedDeltaTime));
-        if (vbaSound.getNumExtraSamples() < 1024) {
-            cyclesToDo += Math.floor(GBA_CYCLES_PER_SECOND / (1000 / 1))
+        if (vbaSound.spareSamplesAtLastEvent > 1000) {
+            cyclesToDo -= Math.min(Math.floor(cyclesToDo * 0.03), GBA_CYCLES_PER_SECOND / 10000);
+        }
+        if (vbaSound.spareSamplesAtLastEvent < 700) {
+            cyclesToDo += Math.min(Math.floor(cyclesToDo * 0.03), GBA_CYCLES_PER_SECOND / 10000);
         }
         VBAInterface.VBA_do_cycles(cyclesToDo);
 
         window.deltaTimesThisSecond.push(deltaTime);
         window.cyclesThisSecond.push(cyclesToDo);
-        window.spareAudioSamplesThisSecond.push(vbaSound.getNumExtraSamples());
         
         clearTimeout(window.frameTimeout);
         window.frameTimeout = setTimeout(function () {
@@ -148,7 +149,13 @@ window.doPerfCalc = function () {
 
         document.querySelector(".perf").style.display = "block";
 
+        function samplesToMillis (samples) {
+            return Math.floor(samples / window.vbaSound.getSampleRate() * 1000) + "ms";
+        }
+
+        var romCode = window.vbaSaves.getRomCode();
         var sumCycles = window.cyclesThisSecond.reduce(function (a, b) { return a + b; }, 0);
+        var maxAudioSamples = window.spareAudioSamplesThisSecond.reduce(function (a, b) { return Math.max(a, b); }, 0);
         var minAudioSamples = window.spareAudioSamplesThisSecond.reduce(function (a, b) { return Math.min(a, b); }, Infinity);
         if (minAudioSamples === Infinity) {
             minAudioSamples = 0;
@@ -169,11 +176,10 @@ window.doPerfCalc = function () {
             }
             return a;
         }, {hit: 0, miss: 0});
+        document.querySelector(".perf-game").innerText = (romCode ? (romCode + " ") : "") + require("./romCodeToEnglish")(romCode);
         document.querySelector(".perf-timesteps").innerText = Math.round(cyclesThisSecond.length / (deltaTime / 1000));
-        document.querySelector(".perf-framerate").innerText = Math.round(renderTimesThisSecond.length / (deltaTime / 1000));
-        document.querySelector(".perf-cycles").innerText = Math.round(sumCycles / 1000 / (deltaTime / 1000)) + "K";
         document.querySelector(".perf-percentage").innerText = (sumCycles / (GBA_CYCLES_PER_SECOND * (deltaTime / 1000)) * 100).toFixed(1) + "%";
-        document.querySelector(".perf-audio-samples-ahead").innerText = Math.floor(minAudioSamples / window.vbaSound.getSampleRate() * 1000) + "ms";
+        document.querySelector(".perf-audio-lag").innerText = samplesToMillis(minAudioSamples) + " - " + samplesToMillis(maxAudioSamples);
         document.querySelector(".perf-audio-deadlines").innerText = audioDeadlineResults.hit + " / " + (audioDeadlineResults.hit + audioDeadlineResults.miss);
         document.querySelector(".perf-render-deadlines").innerText = renderDeadlineResults.hit + " / " + (renderDeadlineResults.hit + renderDeadlineResults.miss);
         

@@ -8,12 +8,13 @@
         var AudioContext = window.AudioContext || window.webkitAudioContext;
         this.audioCtx = new AudioContext();
         this.audioChannels = 2;
-        this.audioScriptNode = this.audioCtx.createScriptProcessor(1024, 2);
+        this.audioScriptNode = this.audioCtx.createScriptProcessor(512, 2);
         this.audioScriptNode.onaudioprocess = this.handleAudioEvent.bind(this);
         this.audioScriptNode.connect(this.audioCtx.destination);
         this.audioSpareSamplesRingBuffer = new Int16Array(1024 * 16);
         this.audioSpareWritePtr = 0;
         this.audioSpareReadPtr = 0;
+        this.spareSamplesAtLastEvent = 0;
 
     }
     VBASound.prototype = Object.create(Object.prototype);
@@ -84,6 +85,9 @@
                 }
             }
         }
+
+        this.spareSamplesAtLastEvent = this.getNumExtraSamples();
+        window.spareAudioSamplesThisSecond.push(this.spareSamplesAtLastEvent);
         
         window.audioDeadlineResultsThisSecond.push(deadlineResult);
 
