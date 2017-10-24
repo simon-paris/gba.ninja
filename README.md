@@ -9,9 +9,10 @@ Eventually, it should work on all browsers that support WebGL. Currently, it als
 
 Install nodejs and emscripten. Ensure that `node` and `emcc` are on your path. `npm install`.
 
-Run `node build --opt` then `webpack`. Open `build/index.html`.
+Run `node build --opt` (the `--opt` is production mode) then `webpack`. Open `build/index.html`.
 
 ## TODOs
+ * Google Drive sync for save games
  * Touch controls
  * Loading screen
  * Enable frameskip on slow devices
