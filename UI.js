@@ -62,8 +62,14 @@
     
     VBAUI.prototype.onKeyDown = function (e) {
         if (this.currentlyBinding) {
+            var prev = vbaInput.bindings[this.currentlyBinding];
             vbaInput.setBinding(this.currentlyBinding, e.code, e.keyCode);
+            var current = vbaInput.bindings[this.currentlyBinding];
             this.reset();
+            
+            gtag("event", "rebind_key", {
+                event_label: "Change " + this.currentlyBinding + " from " + prev.codes.join() + " to " + current.codes.join(),
+            });
         }
     };
     
