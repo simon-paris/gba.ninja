@@ -31,7 +31,7 @@
             "</tr>";
         }
         if (!saves.length) {
-            savesHTML += "&nbsp;None";
+            savesHTML += "<tr><td>None</td></tr>";
         }
         savesHTML += "</table>";
         savesEl.innerHTML = savesHTML;

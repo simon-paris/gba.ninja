@@ -353,7 +353,7 @@
             }
             .btn {
                 display: inline-block;
-                border: 4px #666fb1 solid;
+                border: 4px #7566b1 solid;
                 border-radius: 3px;
                 padding: 8px;
                 background-color: #3a3a3a;
@@ -363,14 +363,18 @@
             }
             .btn:hover {
                 cursor: pointer;
-                border-color: #b9bdd6;
+                border-color: #c5b9d6;
                 background-color: #7a7994;
+            }
+            .empty-table {
+                font-size: 11px;
             }
             table {
                 border-collapse: collapse;
+                font-size: 11px;
             }
             td {
-                padding: 5px 15px;
+                padding: 3px 11px;
                 border: 2px solid #4e2aa7;
                 border-top: none;
                 border-bottom: none;
@@ -379,7 +383,7 @@
                 color: #a89be8;
             }
             .report-bug-button {
-                font-size: 12px;
+                font-size: 11px;
             }
             .perf {
                 position: fixed;
@@ -398,7 +402,7 @@
         <div style="display: none;" class="ui">
             <div class="ui-border-1">
                 <div class="ui-border-2">
-                    <img src="./logo.png" style="height: 50px;"/>
+                    <img src="./logo.png" style="height: 50px; padding-bottom: 6px;"/>
                     <h2>Load a ROM</h2>
                     <div style="padding-bottom: 10px;">
                         <label class="btn" for="load-rom-from-file">From File</label>
@@ -412,13 +416,15 @@
                     -->
                     <h2>Saves</h2>
                     <p class="saves-list"></p>
-                    <div>
+                    <div style="padding-bottom: 10px;">
                         <label class="btn" for="import-save-file">Import Save File</label>
                         <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event, window.vbaUI.reset.bind(vbaUI));"/>
                     </div>
                     <h2>Keyboard Bindings</h2>
                     <p class="keyboard-bindings"></p>
-                    <button class="btn reset-bindings-button" onclick="window.vbaUI.resetBindings();">Reset Bindings</button>
+                    <div style="padding-bottom: 10px;">
+                        <button class="btn reset-bindings-button" onclick="window.vbaUI.resetBindings();">Reset Bindings</button>
+                    </div>
                     <div style="position: absolute; right: 10px; bottom: 10px;">
                         <a class="report-bug-button" target="_blank" href="https://github.com/simon-paris/gba.ninja/issues">Report a bug</a>
                     </div>
