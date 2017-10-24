@@ -78,7 +78,7 @@ window.frameNum = 1;
 
 window.deltaTimesThisSecond = [];
 window.cyclesThisSecond = [];
-window.renderTimesThisSecond = [];
+window.renderDeadlineResults = [];
 window.spareAudioSamplesThisSecond = [];
 window.audioDeadlineResultsThisSecond = [];
 
@@ -131,8 +131,10 @@ window.doTimestep = function (frameNum) {
     }
 };
 
+window.hasRequestedFrameButNotRendered = false;
 window.focusCheck = function () {
     window.lastFocusTime = window.performance.now();
+    window.hasRequestedFrameButNotRendered = true;
     window.requestAnimationFrame(window.focusCheck);
 };
 
@@ -168,8 +170,8 @@ window.doPerfCalc = function () {
             }
             return a;
         }, {hit: 0, miss: 0});
-        var renderDeadlineResults = window.renderTimesThisSecond.reduce(function (a, b) {
-            if (b < 20) {
+        var renderDeadlineResults = window.renderDeadlineResults.reduce(function (a, b) {
+            if (b) {
                 a.hit++;
             } else {
                 a.miss++;
@@ -192,7 +194,7 @@ window.doPerfCalc = function () {
 
     window.cyclesThisSecond.length = 0;
     window.deltaTimesThisSecond.length = 0;
-    window.renderTimesThisSecond.length = 0;
+    window.renderDeadlineResults.length = 0;
     window.spareAudioSamplesThisSecond.length = 0;
     window.audioDeadlineResultsThisSecond.length = 0;
 

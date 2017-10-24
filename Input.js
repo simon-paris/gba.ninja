@@ -16,7 +16,7 @@
     defaultBindings.KEY_BUTTON_SELECT = {
         friendlyName: "Select",
         codes: ["Backspace"],
-        keyCodes: [27, 8],
+        keyCodes: [8],
     };
     defaultBindings.KEY_BUTTON_START = {
         friendlyName: "Start",
@@ -66,22 +66,31 @@
         this.downCodes = {};
         this.downKeyCodes = {};
         window.addEventListener("keydown", function (e) {
+
             var wasPerfKeyDownBefore = this.isKeyDown(this.bindings.PERF_STATS);
+
             this.downCodes[e.code] = 1;
             this.downKeyCodes[e.keyCode] = 1;
+
             var isPerfKeyDownNow = this.isKeyDown(this.bindings.PERF_STATS);
             if (!wasPerfKeyDownBefore && isPerfKeyDownNow) {
                 window.doPerfCalc();
             }
+
             return false;
         }.bind(this));
         window.addEventListener("keyup", function (e) {
+
             var wasPerfKeyDownBefore = this.isKeyDown(this.bindings.PERF_STATS);
+
             this.downCodes[e.code] = 0;
             this.downKeyCodes[e.keyCode] = 0;
-            if (wasPerfKeyDownBefore) {
+            
+            var isPerfKeyDownNow = this.isKeyDown(this.bindings.PERF_STATS);
+            if (wasPerfKeyDownBefore && !isPerfKeyDownNow) {
                 window.doPerfCalc();
             }
+
             return false;
         }.bind(this));
         
