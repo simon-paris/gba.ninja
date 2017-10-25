@@ -222,7 +222,7 @@
                     gtag("event", "load_sav_rom_1", {
                         event_label: binaryFile.name,
                     });
-                    return modalError("That's not a ROM, it's a savegame file. ROM files usually end in '.gba'.");
+                    return modalError("That's not a ROM, it's a savegame file. GBA ROM files usually end in '.gba'.");
                 }
                 
                 var fr = new FileReader();
@@ -248,7 +248,7 @@
                             });
                         }
                         if (romCode.search(/^[A-Z0-9]{4}$/)) {
-                            window.modalError("That file isn't a ROM. (couldn't find a rom code in the file)");
+                            window.modalError("That file isn't a GBA ROM. (couldn't find a rom code in the file)");
                             gtag("event", "invalid_rom_code_1", {
                                 event_label: stringToCharCodes(romCode) + " " + binaryFile.name,
                             });
