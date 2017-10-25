@@ -1,7 +1,7 @@
 (function () {
     "use strict";
     
-    let data = require("!!./gameDbLoader.js!./gameDb.xml");
+    var data = require("!!./gameDbLoader.js!./gameDb.xml");
 
     module.exports = function romCodeToEnglish (romCode) {
         if (!data[romCode]) {

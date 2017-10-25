@@ -204,6 +204,13 @@
                 }
 
                 var binaryFile = e.currentTarget.files[0];
+                if (!binaryFile) {
+                    return;
+                }
+
+                // Clear the file select input
+                e.currentTarget.form.reset();
+
                 if (binaryFile.name.search(/\.zip$/i) !== -1) {
                     gtag("event", "load_zip_rom_1", {
                         event_label: binaryFile.name,
@@ -211,8 +218,15 @@
                     return modalError("You need to extract the rom file from the zip.");
                 }
                 
+                if (binaryFile.name.search(/\.sav$/i) !== -1) {
+                    gtag("event", "load_sav_rom_1", {
+                        event_label: binaryFile.name,
+                    });
+                    return modalError("That's not a ROM, it's a savegame file. ROM files usually end in '.gba'.");
+                }
+                
                 var fr = new FileReader();
-                if (FileReader && binaryFile) {
+                if (FileReader) {
                     fr.readAsArrayBuffer(binaryFile);
                     fr.onload = function () {
                         romBuffer8 = new Uint8Array(fr.result);
@@ -228,13 +242,13 @@
                         }
 
                         if (!isPowerOf2(romBuffer8.length)) {
-                            // I'm not so confident in this. Let's not enforce this.
+                            // Some roms are actually non-pot, so we don't enforce this.
                             gtag("event", "non_pot_rom_1", {
                                 event_label: stringToCharCodes(romCode) + " " + binaryFile.name + " " + romBuffer8.length,
                             });
                         }
                         if (romCode.search(/^[A-Z0-9]{4}$/)) {
-                            window.modalError("That's not a valid ROM. (The ROM code in the file was invalid)");
+                            window.modalError("That file isn't a ROM. (couldn't find a rom code in the file)");
                             gtag("event", "invalid_rom_code_1", {
                                 event_label: stringToCharCodes(romCode) + " " + binaryFile.name,
                             });
@@ -542,7 +556,9 @@
                         <div class="gap"></div>
                         <label class="btn" for="load-rom-from-file">From File</label>
                         <div class="gap"></div>
-                        <input id="load-rom-from-file" type="file" onchange="window.loadRomFromFile(event);"/>
+                        <form>
+                            <input id="load-rom-from-file" type="file" onchange="window.loadRomFromFile(event);"/>
+                        </form>
                     </section>
                     <!--
                         <div>
@@ -556,7 +572,9 @@
                         <div class="saves-list"></div>
                         <div class="gap"></div>
                         <label class="btn" for="import-save-file">Import Save File</label>
-                        <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event, window.vbaUI.reset.bind(vbaUI));"/>
+                        <form>
+                            <input id="import-save-file" type="file" onchange="vbaSaves.onFileImportInputChanged(event, window.vbaUI.reset.bind(vbaUI));"/>
+                        </form>
                     </section>
                     <section>
                         <h2>Keyboard Bindings</h2>
