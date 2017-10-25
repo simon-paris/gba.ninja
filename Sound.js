@@ -62,7 +62,7 @@
 
     VBASound.prototype.handleAudioEvent = function (event) {
 
-        if (!hasEmuModule()) {
+        if (!hasEmuModule() || !VBAInterface.VBA_get_emulating()) {
             return;
         }
 
