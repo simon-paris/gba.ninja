@@ -230,8 +230,7 @@
                         if (!isPowerOf2(romBuffer8.length)) {
                             // I'm not so confident in this. Let's not enforce this.
                             gtag("event", "non_pot_rom_1", {
-                                event_label: stringToCharCodes(romCode) + " " + binaryFile.name,
-                                value: romBuffer8.length,
+                                event_label: stringToCharCodes(romCode) + " " + binaryFile.name + " " + romBuffer8.length,
                             });
                         }
                         if (romCode.search(/^[A-Z0-9]{4}$/)) {
