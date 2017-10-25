@@ -51,6 +51,7 @@
     var opt = require("yargs").argv.opt;
     
     var options = [
+        "--memory-init-file 0",
         "-Werror",
         opt ? "--closure 1" : "",
         opt ? "-O3" : "-g3",

@@ -12,6 +12,7 @@ Install nodejs and emscripten. Ensure that `node` and `emcc` are on your path. `
 Run `node build --opt` (the `--opt` is production mode) then `webpack`. Open `build/index.html`.
 
 ## TODOs
+ * Fix bug where audio stops if headphones are unplugged
  * Google Drive sync for save games
  * Touch controls
  * Loading screen

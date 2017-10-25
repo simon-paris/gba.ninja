@@ -77,6 +77,7 @@ window.lastFrameTime = window.performance.now();
 window.frameTimeout = null;
 window.animationFrameRequest = null;
 window.frameNum = 1;
+window.lastFocusTime = 0;
 
 window.deltaTimesThisSecond = [];
 window.cyclesThisSecond = [];
@@ -85,6 +86,11 @@ window.spareAudioSamplesThisSecond = [];
 window.audioDeadlineResultsThisSecond = [];
 
 window.doTimestep = function (frameNum, mustRender) {
+
+    if (!hasEmuModule()) {
+        return;
+    }
+
     if (frameNum !== window.frameNum + 1) {
         return;
     }
@@ -143,6 +149,11 @@ window.focusCheck = function () {
 window.perfTimer = null;
 window.lastPerfTime = performance.now();
 window.doPerfCalc = function () {
+    
+    if (!hasEmuModule()) {
+        return;
+    }
+    
     clearTimeout(window.perfTimer);
 
     var currentTime = window.performance.now();
@@ -207,5 +218,4 @@ window.scheduleStop = function () {
     isRunning = false;
 };
 
-window.gbaninja = require("./emu.js")(window.gbaninja);
 

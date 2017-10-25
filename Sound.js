@@ -61,6 +61,11 @@
     };
 
     VBASound.prototype.handleAudioEvent = function (event) {
+
+        if (!hasEmuModule()) {
+            return;
+        }
+
         var audioBuffers = [];
         var numChannels = event.outputBuffer.numberOfChannels;
         var requiredSamples = event.outputBuffer.length;

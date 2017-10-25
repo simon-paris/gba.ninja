@@ -6,7 +6,6 @@ src/wx/cmdtab.cpp
 src/wx/wxvbam.xrs
 node_modules
 *.gba
-*.mem
 emu.js
-gz/
-bundle.js
+build/app.js
+build/emu.js

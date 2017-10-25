@@ -3,14 +3,17 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = {
-    entry: "./entry.js",
+    entry: {
+        app: "./appEntry.js",
+        emu: "./emuEntry.js",
+    },
     output: {
         path: path.join(__dirname, "build"),
-        filename: "bundle.js"
+        filename: "[name].js",
     },
     module: {
         loaders: [
-            { test: /\.css$/, loader: "style!css" }
-        ]
+            { test: /\.css$/, loader: "style!css" },
+        ],
     },
 };

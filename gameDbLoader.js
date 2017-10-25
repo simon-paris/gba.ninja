@@ -47,7 +47,7 @@ module.exports = function (code) {
 
             out[game.$.code] = [name, options];
         });
-        callback(null, "module.exports = " + JSON.stringify(out, null, 4));
+        callback(null, "module.exports = " + JSON.stringify(out));
     });
 
 };

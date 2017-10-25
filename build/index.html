@@ -97,6 +97,9 @@
         </script>
         
         <script>
+
+            void new Image("/logo.png");
+
             function escapeHtml(string) {
                 var entityMap = {
                     "&": "&amp;",
@@ -187,9 +190,18 @@
                     return c.charCodeAt(0);
                 });
             }
+
+            function hasEmuModule () {
+                return !!window.gbaninja.HEAP8;
+            }
             
             var romBuffer8 = null;
             window.loadRomFromFile = function (e) {
+
+                if (!hasEmuModule()) {
+                    gtag("event", "emu_file_missing_at_load_rom_1", {});
+                    return modalError("The emulator module isn't loaded yet. Try again in a few seconds or reload the page.");
+                }
 
                 var binaryFile = e.currentTarget.files[0];
                 if (binaryFile.name.search(/\.zip$/i) !== -1) {
@@ -248,10 +260,11 @@
                 triggerReady("document");
             });
             
-            
+            onReady("document", function () {
+                window.init();
+            });
             onReady("emu", function () {
                 onReady("document", function () {
-                    window.init();
                     onReady("cartridge", function () {
                         window.start();
                     });
@@ -417,7 +430,8 @@
             };
             
         </script>
-        <script src="./bundle.js"></script>
+        <script src="./app.js"></script>
+        <script src="./emu.js" async=""></script>
     </head>
     <body>
 
