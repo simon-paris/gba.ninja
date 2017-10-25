@@ -79,11 +79,12 @@ window.animationFrameRequest = null;
 window.frameNum = 1;
 window.lastFocusTime = 0;
 
-window.deltaTimesThisSecond = [];
-window.cyclesThisSecond = [];
-window.renderDeadlineResults = [];
-window.spareAudioSamplesThisSecond = [];
-window.audioDeadlineResultsThisSecond = [];
+window.vbaPerf = {};
+vbaPerf.deltaTimesThisSecond = [];
+vbaPerf.cyclesThisSecond = [];
+vbaPerf.renderDeadlineResultsThisSecond = [];
+vbaPerf.spareAudioSamplesThisSecond = [];
+vbaPerf.audioDeadlineResultsThisSecond = [];
 
 window.doTimestep = function (frameNum, mustRender) {
 
@@ -120,8 +121,8 @@ window.doTimestep = function (frameNum, mustRender) {
         }
         VBAInterface.VBA_do_cycles(cyclesToDo);
 
-        window.deltaTimesThisSecond.push(deltaTime);
-        window.cyclesThisSecond.push(cyclesToDo);
+        vbaPerf.deltaTimesThisSecond.push(deltaTime);
+        vbaPerf.cyclesThisSecond.push(cyclesToDo);
         
         clearTimeout(window.frameTimeout);
         window.frameTimeout = setTimeout(function () {
@@ -169,13 +170,13 @@ window.doPerfCalc = function () {
         }
 
         var romCode = window.vbaSaves.getRomCode();
-        var sumCycles = window.cyclesThisSecond.reduce(function (a, b) { return a + b; }, 0);
-        var maxAudioSamples = window.spareAudioSamplesThisSecond.reduce(function (a, b) { return Math.max(a, b); }, 0);
-        var minAudioSamples = window.spareAudioSamplesThisSecond.reduce(function (a, b) { return Math.min(a, b); }, Infinity);
+        var sumCycles = vbaPerf.cyclesThisSecond.reduce(function (a, b) { return a + b; }, 0);
+        var maxAudioSamples = vbaPerf.spareAudioSamplesThisSecond.reduce(function (a, b) { return Math.max(a, b); }, 0);
+        var minAudioSamples = vbaPerf.spareAudioSamplesThisSecond.reduce(function (a, b) { return Math.min(a, b); }, Infinity);
         if (minAudioSamples === Infinity) {
             minAudioSamples = 0;
         }
-        var audioDeadlineResults = window.audioDeadlineResultsThisSecond.reduce(function (a, b) {
+        var audioDeadlineResults = vbaPerf.audioDeadlineResultsThisSecond.reduce(function (a, b) {
             if (b) {
                 a.hit++;
             } else {
@@ -183,7 +184,7 @@ window.doPerfCalc = function () {
             }
             return a;
         }, {hit: 0, miss: 0});
-        var renderDeadlineResults = window.renderDeadlineResults.reduce(function (a, b) {
+        var renderDeadlineResults = vbaPerf.renderDeadlineResultsThisSecond.reduce(function (a, b) {
             if (b) {
                 a.hit++;
             } else {
@@ -192,7 +193,7 @@ window.doPerfCalc = function () {
             return a;
         }, {hit: 0, miss: 0});
         document.querySelector(".perf-game").innerText = (romCode ? (romCode + " ") : "") + require("./romCodeToEnglish")(romCode);
-        document.querySelector(".perf-timesteps").innerText = Math.round(cyclesThisSecond.length / (deltaTime / 1000));
+        document.querySelector(".perf-timesteps").innerText = Math.round(vbaPerf.cyclesThisSecond.length / (deltaTime / 1000));
         document.querySelector(".perf-percentage").innerText = (sumCycles / (GBA_CYCLES_PER_SECOND * (deltaTime / 1000)) * 100).toFixed(1) + "%";
         document.querySelector(".perf-audio-lag").innerText = samplesToMillis(minAudioSamples) + " - " + samplesToMillis(maxAudioSamples);
         document.querySelector(".perf-audio-deadlines").innerText = audioDeadlineResults.hit + " / " + (audioDeadlineResults.hit + audioDeadlineResults.miss);
@@ -205,11 +206,11 @@ window.doPerfCalc = function () {
     }
 
 
-    window.cyclesThisSecond.length = 0;
-    window.deltaTimesThisSecond.length = 0;
-    window.renderDeadlineResults.length = 0;
-    window.spareAudioSamplesThisSecond.length = 0;
-    window.audioDeadlineResultsThisSecond.length = 0;
+    vbaPerf.cyclesThisSecond.length = 0;
+    vbaPerf.deltaTimesThisSecond.length = 0;
+    vbaPerf.renderDeadlineResultsThisSecond.length = 0;
+    vbaPerf.spareAudioSamplesThisSecond.length = 0;
+    vbaPerf.audioDeadlineResultsThisSecond.length = 0;
 
     window.perfTimer = setTimeout(window.doPerfCalc, 1000);
 };

@@ -92,9 +92,9 @@
         }
 
         this.spareSamplesAtLastEvent = this.getNumExtraSamples();
-        window.spareAudioSamplesThisSecond.push(this.spareSamplesAtLastEvent);
+        vbaPerf.spareAudioSamplesThisSecond.push(this.spareSamplesAtLastEvent);
         
-        window.audioDeadlineResultsThisSecond.push(deadlineResult);
+        vbaPerf.audioDeadlineResultsThisSecond.push(deadlineResult);
 
         var millis = requiredSamples / this.getSampleRate();
         var frameNum = window.frameNum;

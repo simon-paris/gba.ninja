@@ -143,7 +143,7 @@
     VBAGraphics.prototype.drawGBAFrame = function  (gbaPointer8) {
         
         var deltaTime = window.performance.now() - this.lastFrameTime;
-        window.renderDeadlineResults.push(window.hasRequestedFrameButNotRendered);
+        vbaPerf.renderDeadlineResultsThisSecond.push(window.hasRequestedFrameButNotRendered);
         window.hasRequestedFrameButNotRendered = false;
         this.lastFrameTime = window.performance.now();
         
