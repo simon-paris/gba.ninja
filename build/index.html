@@ -155,6 +155,13 @@
             if (!window.localStorage) {
                 window.localStorage = {};
             }
+
+            try {
+                localStorage._ = 1;
+            } catch (e) {
+                window.isShittyLocalstorage = true;
+            }
+
             
             var readyHandlers = {};
             var onReady = function (what, fn) {

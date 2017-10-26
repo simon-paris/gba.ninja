@@ -12,6 +12,7 @@
         this.unsafeSaveTimeout = null;
         this.unsafeSaveBuffer = null;
         this.localStoragePrefix = "VBAsave_";
+        this.lastWarningTime = 0;
     }
     VBASaves.prototype = Object.create(Object.prototype);
     VBASaves.prototype.constructor = VBASaves;
@@ -53,7 +54,18 @@
         for (var i = 0; i < len; i++) {
             binary += String.fromCharCode( uint8Array[i]);
         }
-        localStorage[this.localStoragePrefix + romCode] = window.btoa(binary);
+        try {
+            throw new Error();
+            localStorage[this.localStoragePrefix + romCode] = window.btoa(binary);
+        } catch (e) {
+            if (window.isShittyLocalstorage) {
+                return; // User is already warned.
+            }
+            if (this.lastWarningTime < Date.now() - 5000) {
+                this.lastWarningTime = Date.now();
+                modalError("Unable to save because the storage quota is exceeded. Try opening a new gba.ninja tab and deleting some saves, then save again.");
+            }
+        }
     };
 
     VBASaves.prototype.restoreSaveMemory = function (pointer8, targetBufferSize) {

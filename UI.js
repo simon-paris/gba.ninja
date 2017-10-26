@@ -33,6 +33,9 @@
         if (!saves.length) {
             savesHTML += "<tr><td>None</td></tr>";
         }
+        if (window.isShittyLocalstorage) {
+            savesHTML += "<tr><td><strong>Saving will not be possible because the 'LocalStorage'<br/>feature of your browser is disabled.</strong></td></tr>";
+        }
         savesHTML += "</table>";
         savesEl.innerHTML = savesHTML;
         
