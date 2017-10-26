@@ -198,11 +198,6 @@
             var romBuffer8 = null;
             window.loadRomFromFile = function (e) {
 
-                if (!hasEmuModule()) {
-                    gtag("event", "emu_file_missing_at_load_rom_1", {});
-                    return modalError("The emulator module isn't loaded yet. Try again in a few seconds or reload the page.");
-                }
-
                 var binaryFile = e.currentTarget.files[0];
                 if (!binaryFile) {
                     return;
@@ -211,38 +206,69 @@
                 // Clear the file select input
                 e.currentTarget.form.reset();
 
-                if (binaryFile.name.search(/\.zip$/i) !== -1) {
-                    gtag("event", "load_zip_rom_1", {
-                        event_label: binaryFile.name,
-                    });
-                    return modalError("You need to extract the rom file from the zip.");
-                }
-                
-                if (binaryFile.name.search(/\.sav$/i) !== -1) {
-                    gtag("event", "load_sav_rom_1", {
-                        event_label: binaryFile.name,
-                    });
-                    return modalError("That's not a ROM, it's a savegame file. GBA ROM files usually end in '.gba'.");
-                }
-                
                 var fr = new FileReader();
                 if (FileReader) {
                     fr.readAsArrayBuffer(binaryFile);
                     fr.onload = function () {
                         romBuffer8 = new Uint8Array(fr.result);
 
-                        // Check if it's a real rom
-                        var romCode = String.fromCharCode(romBuffer8[0xAC], romBuffer8[0xAD], romBuffer8[0xAE], romBuffer8[0xAF]);
+                        if (!hasEmuModule()) {
+                            gtag("event", "emu_file_missing_at_load_rom_1", {});
+                            return modalError("The emulator module isn't loaded yet. Try again in a few seconds or reload the page.");
+                        }
 
+                        // Check if it's a real rom
+                        var romCode = String.fromCharCode(
+                            romBuffer8[0xAC], romBuffer8[0xAD], romBuffer8[0xAE], romBuffer8[0xAF]
+                        );
+                        var gbMagic = [
+                            romBuffer8[0x0104], romBuffer8[0x0105], romBuffer8[0x0106], romBuffer8[0x0107],
+                            romBuffer8[0x0108], romBuffer8[0x0109], romBuffer8[0x010A], romBuffer8[0x010B],
+                        ].map(function (v) {
+                            return v.toString(16);
+                        }).join();
+                        
+                        if (binaryFile.name.search(/\.zip$/i) !== -1) {
+                            gtag("event", "load_zip_rom_1", {
+                                event_label: binaryFile.name,
+                            });
+                            return modalError("You need to extract the rom file from the zip.");
+                        }
+                        
                         if (String.fromCharCode(romBuffer8[0], romBuffer8[1]) === "PK") {
                             gtag("event", "load_zip_rom_1", {
-                                event_label: binaryFile.name + "(non-dot-zip-file)",
+                                event_label: binaryFile.name + " (non-dot-zip-file)",
                             });
                             return modalError("You need to extract the rom file.");
                         }
 
+                        if (binaryFile.name.search(/\.sav$/i) !== -1) {
+                            gtag("event", "load_sav_rom_1", {
+                                event_label: binaryFile.name,
+                            });
+                            return modalError("That's not a ROM, it's a savegame file. GBA ROM files usually end in '.gba'.");
+                        }
+                        
+                        if (binaryFile.name.search(/\.smc$/i) !== -1 || binaryFile.name.search(/\.sfc$/i) !== -1) {
+                            gtag("event", "load_smc_rom_1", {
+                                event_label: binaryFile.name,
+                            });
+                            return modalError("That's a SNES ROM, this emulator runs Gameboy Advance ROMs.");
+                        }
+                        
+                        if (gbMagic === "ce,ed,66,66,cc,d,0,b") {
+                            gtag("event", "load_gb_rom_1", {
+                                event_label: binaryFile.name,
+                            });
+                            var colorMaybe = "";
+                            if (binaryFile.name.search(/\.gbc$/i) !== -1) {
+                                colorMaybe = "Color ";
+                            }
+                            return modalError("That's a Gameboy " + colorMaybe + "ROM, this emulator only runs Gameboy Advance ROMs.");
+                        }
+                        
                         if (!isPowerOf2(romBuffer8.length)) {
-                            // Some roms are actually non-pot, so we don't enforce this.
+                            // Some roms are actually non-pot, so don't enforce this.
                             gtag("event", "non_pot_rom_1", {
                                 event_label: stringToCharCodes(romCode) + " " + binaryFile.name + " " + romBuffer8.length,
                             });
@@ -552,7 +578,7 @@
                 <div class="ui-border-2">
                     <img src="./logo.png" style="height: 50px; padding-bottom: 6px; padding-right: 90px;"/>
                     <section>
-                        <h2>Load a ROM</h2>
+                        <h2>Load a Gameboy Advance ROM</h2>
                         <div class="gap"></div>
                         <label class="btn" for="load-rom-from-file">From File</label>
                         <div class="gap"></div>

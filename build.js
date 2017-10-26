@@ -66,7 +66,7 @@
         opt ? "" : "-s ASSERTIONS=2",
         "-s NO_FILESYSTEM=1",
         "-s NO_EXIT_RUNTIME=1",
-        "-s TOTAL_MEMORY=67108864",
+        "-s TOTAL_MEMORY=83886080",
     ].filter(function (v) {return v;}).join(" ");
     var command = `emcc ${options} ${files.join(" ")} -o ./emu.js`;
     
