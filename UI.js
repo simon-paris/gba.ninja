@@ -105,16 +105,25 @@
     };
     
     VBAUI.prototype.deleteSave = function (romCode) {
-        if (confirm("Are you sure you want to delete your save for [" + romCode + "] " + require("./romCodeToEnglish")(romCode) + "?")) {
-            
-            vbaSaves.deleteSave(romCode);
-            this.reset();
 
-            gtag("event", "delete_save_1", {
-                event_label: romCode + " " + require("./romCodeToEnglish")(romCode),
-            });
-        }
+        var modalOpts = modal("Are you sure you want to delete your save for [" + romCode + "] " + require("./romCodeToEnglish")(romCode) + "?", {
+            title: "Confirm Deletion",
+            leftButtonText: "Delete",
+            leftButtonFn: function () {
+                
+                vbaSaves.deleteSave(romCode);
+                this.reset();
+                gtag("event", "delete_save_1", {
+                    event_label: romCode + " " + require("./romCodeToEnglish")(romCode),
+                });
 
+            }.bind(this),
+            rightButtonText: "Cancel",
+            rightButtonFn: function () {
+                modalOpts.hideModal();
+            },
+        });
+        
     };
     
     module.exports = VBAUI;

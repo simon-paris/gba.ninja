@@ -24,7 +24,8 @@
                 width:  100%;
                 height: 100%;
                 margin: 0px;
-                background-color: white;
+                font-family: sans-serif;
+                background-color: #f3ddff;
             }
             canvas {
                 right: 0px;
@@ -98,7 +99,11 @@
         
         <script>
 
-            void new Image("/logo.png");
+            try {
+                void new Image("/logo.png");
+            } catch (e) {
+                // Not sure why but on some browsers this crashes.
+            }
 
             function escapeHtml(string) {
                 var entityMap = {
@@ -189,7 +194,9 @@
             }
             
             var modalEls;
+            var isModalOpen = false;
             function modal (text, options) {
+                isModalOpen = true;
 
                 modalEls = modalEls || {
                     modal: document.querySelector(".modal"),
@@ -201,20 +208,35 @@
                     modalLeftButtonText: document.querySelector(".modal-button-left").childNodes[0],
                     modalRightButton: document.querySelector(".modal-button-right"),
                     modalRightButtonText: document.querySelector(".modal-button-right").childNodes[0],
+                    modalProgress: document.querySelector(".modal-progress"),
+                    modalInput: document.querySelector(".modal-input"),
                 };
 
+                var removeEvents;
                 function hideModal () {
+                    isModalOpen = false;
                     modalEls.modal.style.display = "none";
+                    removeEvents();
                 }
                 
+                function setProgress (n) {
+                    modalEls.modalProgress.style.display = "block";
+                    modalEls.modalProgress.style.width = n + "%";
+                }
+
+                function getInputValue () {
+                    return modalEls.modalInput.value;
+                }
+
                 options = options || {};
                 options = {
                     title: options.title || null,
                     text: text,
                     leftButtonText: options.leftButtonText || "OK",
-                    leftButtonFn: options.leftButtonFn || hideModal,
+                    leftButtonFn: options.leftButtonFn || function () {},
                     rightButtonText: options.rightButtonText || "OK",
                     rightButtonFn: options.rightButtonFn || null,
+                    input: typeof options.input === "string" ? options.input : null,
                 };
 
                 modalEls.modal.style.display = "block";
@@ -228,28 +250,42 @@
                 modalEls.modalLeftButtonText.textContent = options.leftButtonText;
                 modalEls.modalRightButtonText.textContent = options.rightButtonText;
                 if (options.rightButtonFn) {
-                    modalEls.modalRightButton.style.display = "block";
+                    modalEls.modalRightButton.style.display = "";
                 } else {
                     modalEls.modalRightButton.style.display = "none";
                 }
+                modalEls.modalProgress.style.display = "none";
+                modalEls.modalInput.value = "";
+                if (typeof options.input === "string") {
+                    modalEls.modalInput.style.display = "";
+                } else {
+                    modalEls.modalInput.style.display = "none";
+                }
                 
                 var leftHandler = function () {
-                    if (!options.leftButtonFn || options.leftButtonFn() === false) {
+                    if (!options.leftButtonFn || options.leftButtonFn() !== false) {
                         hideModal();
-                        modalEls.modalLeftButton.removeEventListener("click", leftHandler);
                     }
                 };
                 modalEls.modalLeftButton.addEventListener("click", leftHandler);
                 
                 var rightHandler = function () {
-                    if (!options.rightButtonFn || options.rightButtonFn() === false) {
+                    if (!options.rightButtonFn || options.rightButtonFn() !== false) {
                         hideModal();
-                        modalEls.modalRightButton.removeEventListener("click", rightHandler);
                     }
                 };
                 modalEls.modalRightButton.addEventListener("click", rightHandler);
                 
-                return hideModal;
+                removeEvents = function () {
+                    modalEls.modalLeftButton.removeEventListener("click", leftHandler);
+                    modalEls.modalRightButton.removeEventListener("click", rightHandler);
+                };
+
+                return {
+                    hideModal: hideModal,
+                    setProgress: setProgress,
+                    getInputValue: getInputValue,
+                };
             }
 
             function stringToCharCodes (str) {
@@ -275,83 +311,124 @@
                 e.currentTarget.form.reset();
 
                 var fr = new FileReader();
-                if (FileReader) {
-                    fr.readAsArrayBuffer(binaryFile);
-                    fr.onload = function () {
-                        romBuffer8 = new Uint8Array(fr.result);
+                fr.readAsArrayBuffer(binaryFile);
+                fr.onload = function () {
+                    var _romBuffer8 = new Uint8Array(fr.result);
 
-                        if (!hasEmuModule()) {
-                            gtag("event", "emu_file_missing_at_load_rom_1", {});
-                            return modal("The emulator module isn't loaded yet. Try again in a few seconds or reload the page.", errorOpts);
-                        }
+                    if (_romBuffer8.length < 512) {
+                        gtag("event", "load_tiny_rom_1", {
+                            event_label: binaryFile.name,
+                        });
+                        return modal("That file isn't a GBA ROM. (It's too small to be a ROM.)", errorOpts);
+                    }
 
-                        // Check if it's a real rom
-                        var romCode = String.fromCharCode(
-                            romBuffer8[0xAC], romBuffer8[0xAD], romBuffer8[0xAE], romBuffer8[0xAF]
-                        );
-                        var gbMagic = [
-                            romBuffer8[0x0104], romBuffer8[0x0105], romBuffer8[0x0106], romBuffer8[0x0107],
-                            romBuffer8[0x0108], romBuffer8[0x0109], romBuffer8[0x010A], romBuffer8[0x010B],
-                        ].map(function (v) {
-                            return v.toString(16);
-                        }).join();
-                        
-                        if (binaryFile.name.search(/\.zip$/i) !== -1) {
-                            gtag("event", "load_zip_rom_1", {
-                                event_label: binaryFile.name,
-                            });
-                            return modal("You need to extract the rom file from the zip.", errorOpts);
-                        }
-                        
-                        if (String.fromCharCode(romBuffer8[0], romBuffer8[1]) === "PK") {
-                            gtag("event", "load_zip_rom_1", {
-                                event_label: binaryFile.name + " (non-dot-zip-file)",
-                            });
-                            return modal("You need to extract the rom file.", errorOpts);
-                        }
+                    // Check if it's a real rom
+                    var romCode = String.fromCharCode(
+                        _romBuffer8[0xAC], _romBuffer8[0xAD], _romBuffer8[0xAE], _romBuffer8[0xAF]
+                    );
+                    var gbMagic = [
+                        _romBuffer8[0x0104], _romBuffer8[0x0105], _romBuffer8[0x0106], _romBuffer8[0x0107],
+                        _romBuffer8[0x0108], _romBuffer8[0x0109], _romBuffer8[0x010A], _romBuffer8[0x010B],
+                    ].map(function (v) {
+                        return v.toString(16);
+                    }).join();
+                    
+                    if (binaryFile.name.search(/\.zip$/i) !== -1) {
+                        gtag("event", "load_zip_rom_1", {
+                            event_label: binaryFile.name,
+                        });
+                        return modal("You need to extract the rom file from the zip.", errorOpts);
+                    }
+                    
+                    if (String.fromCharCode(_romBuffer8[0], _romBuffer8[1]) === "PK") {
+                        gtag("event", "load_zip_rom_1", {
+                            event_label: binaryFile.name + " (non-dot-zip-file)",
+                        });
+                        return modal("You need to extract the rom file.", errorOpts);
+                    }
 
-                        if (binaryFile.name.search(/\.sav$/i) !== -1) {
-                            gtag("event", "load_sav_rom_1", {
-                                event_label: binaryFile.name,
-                            });
-                            return modal("That's not a ROM, it's a savegame file. GBA ROM files usually end in '.gba'.", errorOpts);
+                    if (binaryFile.name.search(/\.sav$/i) !== -1) {
+                        gtag("event", "load_sav_rom_1", {
+                            event_label: binaryFile.name,
+                        });
+                        return modal("That's not a ROM, it's a savegame file. GBA ROM files usually end in '.gba'.", errorOpts);
+                    }
+                    
+                    if (binaryFile.name.search(/\.smc$/i) !== -1 || binaryFile.name.search(/\.sfc$/i) !== -1) {
+                        gtag("event", "load_smc_rom_1", {
+                            event_label: binaryFile.name,
+                        });
+                        return modal("That's a SNES ROM, this emulator runs Gameboy Advance ROMs.", errorOpts);
+                    }
+                    
+                    if (gbMagic === "ce,ed,66,66,cc,d,0,b") {
+                        gtag("event", "load_gb_rom_1", {
+                            event_label: binaryFile.name,
+                        });
+                        var colorMaybe = "";
+                        if (binaryFile.name.search(/\.gbc$/i) !== -1) {
+                            colorMaybe = "Color ";
                         }
-                        
-                        if (binaryFile.name.search(/\.smc$/i) !== -1 || binaryFile.name.search(/\.sfc$/i) !== -1) {
-                            gtag("event", "load_smc_rom_1", {
-                                event_label: binaryFile.name,
-                            });
-                            return modal("That's a SNES ROM, this emulator runs Gameboy Advance ROMs.", errorOpts);
-                        }
-                        
-                        if (gbMagic === "ce,ed,66,66,cc,d,0,b") {
-                            gtag("event", "load_gb_rom_1", {
-                                event_label: binaryFile.name,
-                            });
-                            var colorMaybe = "";
-                            if (binaryFile.name.search(/\.gbc$/i) !== -1) {
-                                colorMaybe = "Color ";
-                            }
-                            return modal("That's a Gameboy " + colorMaybe + "ROM, this emulator only runs Gameboy Advance ROMs.", errorOpts);
-                        }
-                        
-                        if (!isPowerOf2(romBuffer8.length)) {
-                            // Some roms are actually non-pot, so don't enforce this.
-                            gtag("event", "non_pot_rom_1", {
-                                event_label: stringToCharCodes(romCode) + " " + binaryFile.name + " " + romBuffer8.length,
-                            });
-                        }
-                        if (romCode.search(/^[A-Z0-9]{4}$/)) {
-                            window.modal("That file isn't a GBA ROM. (couldn't find a rom code in the file)", errorOpts);
-                            gtag("event", "invalid_rom_code_1", {
-                                event_label: stringToCharCodes(romCode) + " " + binaryFile.name,
-                            });
-                            return;
-                        }
+                        return modal("That's a Gameboy " + colorMaybe + "ROM, this emulator only runs Gameboy Advance ROMs.", errorOpts);
+                    }
+                    
+                    if (!isPowerOf2(_romBuffer8.length)) {
+                        // Some roms are actually non-pot, so don't enforce this.
+                        gtag("event", "non_pot_rom_1", {
+                            event_label: stringToCharCodes(romCode) + " " + binaryFile.name + " " + _romBuffer8.length,
+                        });
+                        // Don't return
+                    }
+                    if (romCode.search(/^[A-Z0-9]{4}$/)) {
+                        gtag("event", "invalid_rom_code_1", {
+                            event_label: stringToCharCodes(romCode) + " " + binaryFile.name,
+                        });
+                        return modal("That file isn't a GBA ROM. (Couldn't find a rom code in the file.)", errorOpts);
+                    }
 
+                    function ok () {
+                        romBuffer8 = _romBuffer8;
                         triggerReady("cartridge");
-                    }.bind(this);
-                }
+                    }
+
+                    if (hasEmuModule()) {
+                        ok();
+                    } else {
+                        gtag("event", "emu_file_missing_at_load_rom_1", {});
+                        var interval;
+                        var modalOpts = modal("The emulator module isn't loaded yet. Give it a moment.", {
+                            title: "Waiting For Emulator Module",
+                            leftButtonText: "Back",
+                            leftButtonFn: function () {
+                                clearInterval(interval);
+                            },
+                        });
+                        function progress () {
+                            if (window.emuScriptProgress === -1) {
+                                modalOpts.hideModal();
+                                return modal("There was an error while loading the emulator module. You'll need to refresh the page.", {
+                                    title: "Error",
+                                    leftButtonText: "Ok",
+                                    leftButtonFn: function () {
+                                        clearInterval(interval);
+                                    },
+                                });
+                            } else {
+                                modalOpts.setProgress(window.emuScriptProgress);
+                            }
+                        }
+                        
+                        progress();
+                        interval = setInterval(function () {
+                            progress();
+                            if (window.emuScriptProgress >= 100) {
+                                clearInterval(interval);
+                                modalOpts.hideModal();
+                                ok();
+                            }
+                        }, 100);
+                    }
+                };
                 
             };
             
@@ -378,6 +455,10 @@
                 });
             });
             
+
+            
+
+
             
             // ------ VBA ENTRY POINTS -------
             
@@ -535,18 +616,42 @@
             VBAInterface.dbgOutput = function (textPointer8, unknownPointer8) {
                 return console.log("dbgOutput", textPointer8, unknownPointer8);
             };
+
+
+
+            function ajaxScript (url, progressCallback) {
+                var xhr = new XMLHttpRequest();
+                xhr.onload = function(e) {
+                    var script = document.createElement('script');
+                    script.text = xhr.responseText;
+                    document.head.appendChild(script);
+                };
+                xhr.onprogress = function(e) {
+                    progressCallback((e.loaded / e.total) * 100);
+                };
+                xhr.onerror = function() {
+                    progressCallback(-1);
+                    gtag("event", "emu_load_error", {});
+                };
+                xhr.open("GET", url);
+                xhr.responseType = "text";
+                xhr.send();
+            }
+
+            window.emuScriptProgress = 0;
+            ajaxScript("./emu.js", function (progress, text) {
+                window.emuScriptProgress = progress;
+            });
+
+
+
             
         </script>
         <script src="./app.js"></script>
-        <script src="./emu.js"></script>
     </head>
     <body>
 
         <style>
-            html, body {
-                font-family: sans-serif;
-                background-color: #f3ddff;
-            }
             .ui {
                 color: #4d2990;
             }
@@ -665,6 +770,21 @@
             .modal-button-left, .modal-button-right {
                 margin: 6px 4px 3px 4px;
             }
+            .modal-progress {
+                height: 4px;
+                margin-bottom: 10px;
+                background-color: #9b69b7;
+            }
+            .modal-input {
+                width: 100%;
+                padding: 6px;
+                box-sizing: border-box;
+                margin: 10px 0;
+                border: 2px solid #9b69b7;
+                border-radius: 5px;
+                font-size: 15px;
+                color: #4d2990;
+            }
             .perf {
                 position: fixed;
                 bottom: 0;
@@ -728,6 +848,8 @@
                 <div class="gap"></div>
                 <p class="modal-text">Text</p>
                 <div class="gap"></div>
+                <div class="modal-progress"></div>
+                <input class="modal-input"></input>
                 <div class="modal-buttons">
                     <div class="btn modal-button-left">Left</div>
                     <div class="btn modal-button-right">Right</div>

@@ -62,7 +62,7 @@
             }
             if (this.lastWarningTime < Date.now() - 5000) {
                 this.lastWarningTime = Date.now();
-                modal("Unable to save because the storage quota is exceeded. Try opening a new gba.ninja tab and deleting some saves, then save again.");
+                modal("Unable to save because the storage quota is exceeded. Try opening a new gba.ninja tab and deleting some saves, then save again.", {title: "Error"});
             }
         }
     };
@@ -128,23 +128,50 @@
     };
     
     VBASaves.prototype.onFileImportInputChanged = function (e, callback) {
+
         var binaryFile = e.currentTarget.files[0];
-        var fr = new FileReader();
-        if (FileReader && binaryFile) {
+        e.currentTarget.form.reset();
+        
+        if (binaryFile) {
+            var fr = new FileReader();
             fr.readAsArrayBuffer(binaryFile);
             fr.onload = function () {
+
 				var romCodeValidator = /^[A-Z1-9]{4}/;
                 var romCode = binaryFile.name.substr(0, 4);
-                if (romCode.search(romCodeValidator) === -1) {
-                    romCode = window.prompt("What is the ROM code of the game that this save file belongs to? (4 uppercase letters or numbers)");
-					if (!romCode) return;
-                }
-                if (romCode.search(romCodeValidator) === -1) {
-                    alert("Invalid ROM code.");
-                } else {
+
+                var romCodeOk = function () {
                     this.importSave(romCode, new Uint8Array(fr.result));
                     callback();
+                }.bind(this);
+                var romCodeNotOk = function () {
+                    return window.modal("Invalid ROM Code", {title: "Error"});
+                }.bind(this);
+
+                if (romCode.search(romCodeValidator) === -1) {
+                    var modalOpts = window.modal("What is the ROM code of the game that this save file belongs to? (4 uppercase letters or numbers)", {
+                        title: "Enter ROM Code",
+                        input: "",
+                        leftButtonText: "Submit",
+                        leftButtonFn: function () {
+                            romCode = modalOpts.getInputValue();
+                            modalOpts.hideModal();
+                            if (romCode.search(romCodeValidator) === -1) {
+                                romCodeNotOk();
+                                return false;
+                            } else {
+                                romCodeOk();
+                            }
+                        },
+                        rightButtonText: "Cancel",
+                        rightButtonFn: function () {
+                            modalOpts.hideModal();
+                        },
+                    });
+                } else {
+                    romCodeOk();
                 }
+
             }.bind(this);
         }
     };

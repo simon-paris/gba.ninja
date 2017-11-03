@@ -96,7 +96,6 @@
         
         vbaPerf.audioDeadlineResultsThisSecond.push(deadlineResult);
 
-        var millis = requiredSamples / this.getSampleRate();
         var frameNum = window.frameNum;
         setTimeout(function () {
             window.doTimestep(frameNum + 1);
