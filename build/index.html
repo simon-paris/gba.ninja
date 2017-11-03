@@ -188,8 +188,68 @@
                 return (x != 0) && ((x & (x - 1)) == 0);
             }
             
-            function modalError (err) {
-                return alert(err);
+            var modalEls;
+            function modal (text, options) {
+
+                modalEls = modalEls || {
+                    modal: document.querySelector(".modal"),
+                    modalTitle: document.querySelector(".modal-title"),
+                    modalTitleText: document.querySelector(".modal-title").childNodes[0],
+                    modalText: document.querySelector(".modal-text"),
+                    modalTextText: document.querySelector(".modal-text").childNodes[0],
+                    modalLeftButton: document.querySelector(".modal-button-left"),
+                    modalLeftButtonText: document.querySelector(".modal-button-left").childNodes[0],
+                    modalRightButton: document.querySelector(".modal-button-right"),
+                    modalRightButtonText: document.querySelector(".modal-button-right").childNodes[0],
+                };
+
+                function hideModal () {
+                    modalEls.modal.style.display = "none";
+                }
+                
+                options = options || {};
+                options = {
+                    title: options.title || null,
+                    text: text,
+                    leftButtonText: options.leftButtonText || "OK",
+                    leftButtonFn: options.leftButtonFn || hideModal,
+                    rightButtonText: options.rightButtonText || "OK",
+                    rightButtonFn: options.rightButtonFn || null,
+                };
+
+                modalEls.modal.style.display = "block";
+                if (options.title) {
+                    modalEls.modalTitle.style.display = "block";
+                    modalEls.modalTitleText.textContent = options.title;
+                } else {
+                    modalEls.modalTitle.style.display = "none";
+                }
+                modalEls.modalTextText.textContent = options.text;
+                modalEls.modalLeftButtonText.textContent = options.leftButtonText;
+                modalEls.modalRightButtonText.textContent = options.rightButtonText;
+                if (options.rightButtonFn) {
+                    modalEls.modalRightButton.style.display = "block";
+                } else {
+                    modalEls.modalRightButton.style.display = "none";
+                }
+                
+                var leftHandler = function () {
+                    if (!options.leftButtonFn || options.leftButtonFn() === false) {
+                        hideModal();
+                        modalEls.modalLeftButton.removeEventListener("click", leftHandler);
+                    }
+                };
+                modalEls.modalLeftButton.addEventListener("click", leftHandler);
+                
+                var rightHandler = function () {
+                    if (!options.rightButtonFn || options.rightButtonFn() === false) {
+                        hideModal();
+                        modalEls.modalRightButton.removeEventListener("click", rightHandler);
+                    }
+                };
+                modalEls.modalRightButton.addEventListener("click", rightHandler);
+                
+                return hideModal;
             }
 
             function stringToCharCodes (str) {
@@ -204,6 +264,7 @@
             
             var romBuffer8 = null;
             window.loadRomFromFile = function (e) {
+                var errorOpts = {title: "Error"};
 
                 var binaryFile = e.currentTarget.files[0];
                 if (!binaryFile) {
@@ -221,7 +282,7 @@
 
                         if (!hasEmuModule()) {
                             gtag("event", "emu_file_missing_at_load_rom_1", {});
-                            return modalError("The emulator module isn't loaded yet. Try again in a few seconds or reload the page.");
+                            return modal("The emulator module isn't loaded yet. Try again in a few seconds or reload the page.", errorOpts);
                         }
 
                         // Check if it's a real rom
@@ -239,28 +300,28 @@
                             gtag("event", "load_zip_rom_1", {
                                 event_label: binaryFile.name,
                             });
-                            return modalError("You need to extract the rom file from the zip.");
+                            return modal("You need to extract the rom file from the zip.", errorOpts);
                         }
                         
                         if (String.fromCharCode(romBuffer8[0], romBuffer8[1]) === "PK") {
                             gtag("event", "load_zip_rom_1", {
                                 event_label: binaryFile.name + " (non-dot-zip-file)",
                             });
-                            return modalError("You need to extract the rom file.");
+                            return modal("You need to extract the rom file.", errorOpts);
                         }
 
                         if (binaryFile.name.search(/\.sav$/i) !== -1) {
                             gtag("event", "load_sav_rom_1", {
                                 event_label: binaryFile.name,
                             });
-                            return modalError("That's not a ROM, it's a savegame file. GBA ROM files usually end in '.gba'.");
+                            return modal("That's not a ROM, it's a savegame file. GBA ROM files usually end in '.gba'.", errorOpts);
                         }
                         
                         if (binaryFile.name.search(/\.smc$/i) !== -1 || binaryFile.name.search(/\.sfc$/i) !== -1) {
                             gtag("event", "load_smc_rom_1", {
                                 event_label: binaryFile.name,
                             });
-                            return modalError("That's a SNES ROM, this emulator runs Gameboy Advance ROMs.");
+                            return modal("That's a SNES ROM, this emulator runs Gameboy Advance ROMs.", errorOpts);
                         }
                         
                         if (gbMagic === "ce,ed,66,66,cc,d,0,b") {
@@ -271,7 +332,7 @@
                             if (binaryFile.name.search(/\.gbc$/i) !== -1) {
                                 colorMaybe = "Color ";
                             }
-                            return modalError("That's a Gameboy " + colorMaybe + "ROM, this emulator only runs Gameboy Advance ROMs.");
+                            return modal("That's a Gameboy " + colorMaybe + "ROM, this emulator only runs Gameboy Advance ROMs.", errorOpts);
                         }
                         
                         if (!isPowerOf2(romBuffer8.length)) {
@@ -281,7 +342,7 @@
                             });
                         }
                         if (romCode.search(/^[A-Z0-9]{4}$/)) {
-                            window.modalError("That file isn't a GBA ROM. (couldn't find a rom code in the file)");
+                            window.modal("That file isn't a GBA ROM. (couldn't find a rom code in the file)", errorOpts);
                             gtag("event", "invalid_rom_code_1", {
                                 event_label: stringToCharCodes(romCode) + " " + binaryFile.name,
                             });
@@ -477,7 +538,7 @@
             
         </script>
         <script src="./app.js"></script>
-        <script src="./emu.js" async=""></script>
+        <script src="./emu.js"></script>
     </head>
     <body>
 
@@ -541,6 +602,8 @@
                 color: #ece6ff;
                 font-weight: 600;
     			font-size: 13px;
+                min-width: 60px;
+                text-align: center;
             }
             .btn:hover {
                 cursor: pointer;
@@ -565,6 +628,42 @@
             }
             .report-bug-button {
                 font-size: 11px;
+            }
+            .modal {
+                display: none;
+            }
+            .modal-background {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                opacity: 0.8;
+                background-color: black;
+            }
+            .modal-body {
+                width: 400px;
+                margin: 0 auto;
+                position: absolute;
+
+                border: 10px solid #aa17fe;
+                background-color: white;
+                border-left-width: 3px;
+                border-right-width: 3px;
+
+                left: 50%;
+                margin-left: -218px; /* =(400 + 2*15 + 2*3) / 2 */
+                margin-top: 60px;
+                padding: 15px;
+            }
+            .modal-title {
+                font-size: 16px;
+            }
+            .modal-buttons {
+                text-align: center;
+            }
+            .modal-button-left, .modal-button-right {
+                margin: 6px 4px 3px 4px;
             }
             .perf {
                 position: fixed;
@@ -622,13 +721,27 @@
                 </div>
             </div>
         </div>
+        <div class="modal">
+            <div class="modal-background"></div>
+            <div class="modal-body">
+                <h2 class="modal-title">Title</h2>
+                <div class="gap"></div>
+                <p class="modal-text">Text</p>
+                <div class="gap"></div>
+                <div class="modal-buttons">
+                    <div class="btn modal-button-left">Left</div>
+                    <div class="btn modal-button-right">Right</div>
+                </div>
+            </div>
+        </div>
         <div class="perf" style="display: none;">
-            <span class="perf-left">Game</span><span class="perf-right perf-game"></span><br/>
-            <span class="perf-left">Speed</span><span class="perf-right perf-percentage"></span><br/>
-            <span class="perf-left">On-Time Renders</span><span class="perf-right perf-render-deadlines"></span><br/>
-            <span class="perf-left">On-Time Audio Events</span><span class="perf-right perf-audio-deadlines"></span><br/>
-            <span class="perf-left">Timesteps/Second</span><span class="perf-right perf-timesteps"></span><br/>
-            <span class="perf-left">Audio Lag</span><span class="perf-right perf-audio-lag"></span><br/>
+            <span class="perf-left">Game</span><span class="perf-right perf-game">-</span><br/>
+            <span class="perf-left">Speed</span><span class="perf-right perf-percentage">-</span><br/>
+            <span class="perf-left">On-Time Renders</span><span class="perf-right perf-render-deadlines">-</span><br/>
+            <span class="perf-left">On-Time Audio Events</span><span class="perf-right perf-audio-deadlines">-</span><br/>
+            <span class="perf-left">Timesteps/Second</span><span class="perf-right perf-timesteps">-</span><br/>
+            <span class="perf-left">Audio Lag</span><span class="perf-right perf-audio-lag">-</span><br/>
+            <span class="perf-left">Timing Adjustments</span><span class="perf-right perf-timing">-</span><br/>
         </div>
     </body>
 </html>

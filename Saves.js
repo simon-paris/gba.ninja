@@ -55,7 +55,6 @@
             binary += String.fromCharCode( uint8Array[i]);
         }
         try {
-            throw new Error();
             localStorage[this.localStoragePrefix + romCode] = window.btoa(binary);
         } catch (e) {
             if (window.isShittyLocalstorage) {
@@ -63,7 +62,7 @@
             }
             if (this.lastWarningTime < Date.now() - 5000) {
                 this.lastWarningTime = Date.now();
-                modalError("Unable to save because the storage quota is exceeded. Try opening a new gba.ninja tab and deleting some saves, then save again.");
+                modal("Unable to save because the storage quota is exceeded. Try opening a new gba.ninja tab and deleting some saves, then save again.");
             }
         }
     };
