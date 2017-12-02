@@ -15,13 +15,24 @@
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'UA-45495852-6');
+            gtag("js", new Date());
+            gtag("config", "UA-45495852-6");
         </script>
 
         <script>
             if (navigator.serviceWorker) {
                 navigator.serviceWorker.register("./sw.js", { scope: "./", });
+                navigator.serviceWorker.addEventListener("message", event => {
+                    var msg = event.data.msg;
+                    switch (msg.name) {
+                        default:
+                            console.log("unknown sw message", event);
+                            gtag("event", "unknown_sw_message_1", {
+                                name: msg.name,
+                            });
+                            return;
+                    }
+                });
             }
         </script>
         <style>
