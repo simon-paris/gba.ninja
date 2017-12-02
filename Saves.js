@@ -23,7 +23,13 @@
     
     
     VBASaves.prototype.getRomCode = function () {
-        return this.emscriptenModule.Pointer_stringify(VBAInterface.VBA_get_rom() + 0xAC).substr(0, 4);
+        var heapu8 = this.emscriptenModule.HEAPU8;
+        var romAddress8 = VBAInterface.VBA_get_rom();
+        var romCode = String.fromCharCode(
+            heapu8[romAddress8 + 0xAC], heapu8[romAddress8 + 0xAD],
+            heapu8[romAddress8 + 0xAE], heapu8[romAddress8 + 0xAF]
+        ).replace(/[^ -~]/g, function () { return "?"; });
+        return romCode;
     };
     
     
