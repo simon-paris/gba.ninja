@@ -19,6 +19,11 @@
             gtag('config', 'UA-45495852-6');
         </script>
 
+        <script>
+            if (navigator.serviceWorker) {
+                navigator.serviceWorker.register("./sw.js", { scope: "./", });
+            }
+        </script>
         <style>
             html, body {
                 width:  100%;

@@ -13,3 +13,4 @@ emu-wasm.js
 emu-wasm.wasm
 build/app.js
 build/emu.js
+build/sw.js
