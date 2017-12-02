@@ -194,9 +194,9 @@
             }
             
             var modalEls;
-            var isModalOpen = false;
+            var modalRefcount = 0;
             function modal (text, options) {
-                isModalOpen = true;
+                modalRefcount++;
 
                 modalEls = modalEls || {
                     modal: document.querySelector(".modal"),
@@ -214,7 +214,11 @@
 
                 var removeEvents;
                 function hideModal () {
-                    isModalOpen = false;
+                    modalRefcount--;
+                    if (modalRefcount <= 0) {
+                        modalRefcount = 0;
+                        document.body.style.overflow = "";
+                    }
                     modalEls.modal.style.display = "none";
                     removeEvents();
                 }
@@ -240,6 +244,8 @@
                 };
 
                 modalEls.modal.style.display = "block";
+                document.body.style.overflow = "hidden";
+                document.body.scrollTop = 0;
                 if (options.title) {
                     modalEls.modalTitle.style.display = "block";
                     modalEls.modalTitleText.textContent = options.title;
@@ -379,55 +385,66 @@
                         });
                         // Don't return
                     }
-                    if (romCode.search(/^[A-Z0-9]{4}$/)) {
-                        gtag("event", "invalid_rom_code_1", {
-                            event_label: stringToCharCodes(romCode) + " " + binaryFile.name,
-                        });
-                        return modal("That file isn't a GBA ROM. (Couldn't find a rom code in the file.)", errorOpts);
-                    }
 
                     function ok () {
                         romBuffer8 = _romBuffer8;
                         triggerReady("cartridge");
                     }
 
-                    if (hasEmuModule()) {
-                        ok();
-                    } else {
-                        gtag("event", "emu_file_missing_at_load_rom_1", {});
-                        var interval;
-                        var modalOpts = modal("The emulator module isn't loaded yet. Give it a moment.", {
-                            title: "Waiting For Emulator Module",
-                            leftButtonText: "Back",
-                            leftButtonFn: function () {
-                                clearInterval(interval);
-                            },
-                        });
-                        function progress () {
-                            if (window.emuScriptProgress === -1) {
-                                modalOpts.hideModal();
-                                return modal("There was an error while loading the emulator module. You'll need to refresh the page.", {
-                                    title: "Error",
-                                    leftButtonText: "Ok",
-                                    leftButtonFn: function () {
-                                        clearInterval(interval);
-                                    },
-                                });
-                            } else {
-                                modalOpts.setProgress(window.emuScriptProgress);
+                    function waitForEmuLoad () {
+                        if (hasEmuModule()) {
+                            ok();
+                        } else {
+                            gtag("event", "emu_file_missing_at_load_rom_1", {});
+                            var interval;
+                            var modalOpts = modal("The emulator module isn't loaded yet. Give it a moment.", {
+                                title: "Waiting For Emulator Module",
+                                leftButtonText: "Back",
+                                leftButtonFn: function () {
+                                    clearInterval(interval);
+                                },
+                            });
+                            function progress () {
+                                if (window.emuScriptProgress === -1) {
+                                    modalOpts.hideModal();
+                                    return modal("There was an error while loading the emulator module. You'll need to refresh the page.", {
+                                        title: "Error",
+                                        leftButtonText: "Ok",
+                                        leftButtonFn: function () {
+                                            clearInterval(interval);
+                                        },
+                                    });
+                                } else {
+                                    modalOpts.setProgress(window.emuScriptProgress);
+                                }
                             }
-                        }
-                        
-                        progress();
-                        interval = setInterval(function () {
+                            
                             progress();
-                            if (window.emuScriptProgress >= 100) {
-                                clearInterval(interval);
-                                modalOpts.hideModal();
-                                ok();
-                            }
-                        }, 100);
+                            interval = setInterval(function () {
+                                progress();
+                                if (window.emuScriptProgress >= 100) {
+                                    clearInterval(interval);
+                                    modalOpts.hideModal();
+                                    ok();
+                                }
+                            }, 100);
+                        }
                     }
+
+                    
+                    if (romCode.search(/^[A-Z0-9]{4}$/)) {
+                        gtag("event", "invalid_rom_code_1", {
+                            event_label: stringToCharCodes(romCode) + " " + binaryFile.name,
+                        });
+                        return modal("That file doesn't look like a GBA ROM. (Couldn't find a rom code in the file.)", {
+                            title: "Error",
+                            rightButtonText: "Run it anyway",
+                            rightButtonFn: waitForEmuLoad,
+                        });
+                    } else {
+                        waitForEmuLoad();
+                    }
+
                 };
                 
             };
@@ -445,7 +462,11 @@
             });
             
             onReady("document", function () {
-                window.init();
+                if (window.init) {
+                    window.init();
+                } else {
+                    document.querySelector(".pixels").innerHTML = "<p style='margin: 20px;'>A required file failed to load.</p>";
+                }
             });
             onReady("emu", function () {
                 onReady("document", function () {

@@ -50,6 +50,8 @@
     
     var opt = require("yargs").argv.opt;
     
+    var MB = Math.pow(2, 20);
+
     var options = [
         "--memory-init-file 0",
         "-Werror",
@@ -66,11 +68,11 @@
         opt ? "" : "-s ASSERTIONS=2",
         "-s NO_FILESYSTEM=1",
         "-s NO_EXIT_RUNTIME=1",
-        "-s TOTAL_MEMORY=83886080",
+        "-s TOTAL_MEMORY=" + (80 * MB),
     ].filter(function (v) {return v;}).join(" ");
-    var command = `emcc ${options} ${files.join(" ")} -o ./emu.js`;
     
-    require("child_process").execSync(command);
+    require("child_process").execSync(`emcc ${options} ${files.join(" ")} -o ./emu.js`);
+    require("child_process").execSync(`emcc ${options} ${files.join(" ")} -s WASM=1 -o ./emu-wasm.js`);
     
 	// Fix stupid shit in emscripten
 	let str = require("fs").readFileSync("./emu.js").toString().replace(/require\("fs"\)/g, "(function () { throw new Error('cant use fs in browser')}())");

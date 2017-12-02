@@ -1,18 +1,22 @@
 (function () {
     "use strict";
     
-
+    var MODE_LOCAL = "local";
+    var MODE_DRIVE = "drive";
     
     var saveAs = require("./saveAs").saveAs;
     
     function VBASaves(emscriptenModule) {
         this.emscriptenModule = emscriptenModule;
         
+        this.mode = MODE_LOCAL;
+        
         this.safeSaveTimeout = null;
         this.unsafeSaveTimeout = null;
         this.unsafeSaveBuffer = null;
         this.localStoragePrefix = "VBAsave_";
         this.lastWarningTime = 0;
+
     }
     VBASaves.prototype = Object.create(Object.prototype);
     VBASaves.prototype.constructor = VBASaves;
@@ -28,7 +32,7 @@
         romCode = romCode || this.getRomCode();
         var base64 = localStorage[this.localStoragePrefix + romCode];
         if (!base64) {
-            return new Uint8Array(0);
+            return null;
         }
         return new Uint8Array(atob(base64).split("").map(function(c) {
             return c.charCodeAt(0);
@@ -36,7 +40,8 @@
     };
 
     VBASaves.prototype.getSaveSize = function () {
-        return this.getSave().byteLength;
+        var save = this.getSave();
+        return save ? save.byteLength : 0;
     };
 
     VBASaves.prototype.softCommit = function (pointer8, size) {
@@ -69,12 +74,15 @@
 
     VBASaves.prototype.restoreSaveMemory = function (pointer8, targetBufferSize) {
         var save = this.getSave();
-        var heap8 = this.emscriptenModule.HEAPU8;
-
+        if (!save) {
+            return;
+        }
+        
         if (save.byteLength !== targetBufferSize) {
             throw new Error("Incompatible save size");
         }
-
+        
+        var heap8 = this.emscriptenModule.HEAPU8;
         for (var i = 0; i < targetBufferSize; i++) {
             heap8[pointer8 + i] = save[i];
         }
@@ -119,7 +127,11 @@
     };
     
     VBASaves.prototype.exportSave = function (romCode) {
-        var blob = new Blob([this.getSave(romCode)], {contentType: "application/octet-stream"});
+        var save = this.getSave(romCode);
+        if (!save) {
+            throw new Error("No save found for " + romCode);
+        }
+        var blob = new Blob([save], {contentType: "application/octet-stream"});
         saveAs(blob, romCode + " " + require("./romCodeToEnglish")(romCode) + ".sav", true);
     };
     

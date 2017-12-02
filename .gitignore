@@ -9,5 +9,7 @@ node_modules
 *.gb
 *.gbc
 emu.js
+emu-wasm.js
+emu-wasm.wasm
 build/app.js
 build/emu.js
