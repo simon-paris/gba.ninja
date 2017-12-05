@@ -4,7 +4,7 @@
         
         <meta charset="utf-8"/>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.2"/>
         <meta name="title" content="gba.ninja - Gameboy emulator in the browser"/>
         <meta name="description" content="Run Gameboy games in an emulator for web browsers."/>
         
@@ -261,7 +261,7 @@
 
                 modalEls.modal.style.display = "block";
                 document.body.style.overflow = "hidden";
-                document.body.scrollTop = 0;
+                window.scrollTo(0, 0);
                 if (options.title) {
                     modalEls.modalTitle.style.display = "block";
                     modalEls.modalTitleText.textContent = options.title;
