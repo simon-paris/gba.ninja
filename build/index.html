@@ -114,12 +114,23 @@
         </script>
         
         <script>
+            "use strict";
 
             try {
                 void new Image("/logo.png");
             } catch (e) {
                 // Not sure why but on some browsers this crashes.
             }
+
+
+            var qs = {};
+            if (location.search) {
+                location.search.substr(1).split(/&/g).map(function (term) {
+                    var parts = term.split(/=/g);
+                    qs[parts[0]] = parts[1];
+                });
+            }
+
 
             function escapeHtml(string) {
                 var entityMap = {
@@ -253,7 +264,8 @@
                     title: options.title || null,
                     text: text,
                     leftButtonText: options.leftButtonText || "OK",
-                    leftButtonFn: options.leftButtonFn || function () {},
+                    leftButtonFn: options.hasOwnProperty("leftButtonFn") ?
+                                        options.leftButtonFn : function () {},
                     rightButtonText: options.rightButtonText || "OK",
                     rightButtonFn: options.rightButtonFn || null,
                     input: typeof options.input === "string" ? options.input : null,
@@ -271,6 +283,11 @@
                 modalEls.modalTextText.textContent = options.text;
                 modalEls.modalLeftButtonText.textContent = options.leftButtonText;
                 modalEls.modalRightButtonText.textContent = options.rightButtonText;
+                if (options.leftButtonFn) {
+                    modalEls.modalLeftButton.style.display = "";
+                } else {
+                    modalEls.modalLeftButton.style.display = "none";
+                }
                 if (options.rightButtonFn) {
                     modalEls.modalRightButton.style.display = "";
                 } else {
@@ -320,152 +337,202 @@
                 return !!window.gbaninja.HEAP8;
             }
             
+
             var romBuffer8 = null;
-            window.loadRomFromFile = function (e) {
+            window.loadRomFromBuffer = function (_romBuffer8, filename) {
                 var errorOpts = {title: "Error"};
 
+                if (_romBuffer8.length < 512) {
+                    gtag("event", "load_tiny_rom_1", {
+                        event_label: filename,
+                    });
+                    return modal("That file isn't a GBA ROM. (It's too small to be a ROM.)", errorOpts);
+                }
+
+                // Check if it's a real rom
+                var romCode = String.fromCharCode(
+                    _romBuffer8[0xAC], _romBuffer8[0xAD], _romBuffer8[0xAE], _romBuffer8[0xAF]
+                );
+                var gbMagic = [
+                    _romBuffer8[0x0104], _romBuffer8[0x0105], _romBuffer8[0x0106], _romBuffer8[0x0107],
+                    _romBuffer8[0x0108], _romBuffer8[0x0109], _romBuffer8[0x010A], _romBuffer8[0x010B],
+                ].map(function (v) {
+                    return v.toString(16);
+                }).join();
+                
+                if (filename.search(/\.zip$/i) !== -1) {
+                    gtag("event", "load_zip_rom_1", {
+                        event_label: filename,
+                    });
+                    return modal("You need to extract the rom file from the zip.", errorOpts);
+                }
+                
+                if (String.fromCharCode(_romBuffer8[0], _romBuffer8[1]) === "PK") {
+                    gtag("event", "load_zip_rom_1", {
+                        event_label: filename + " (non-dot-zip-file)",
+                    });
+                    return modal("You need to extract the rom file.", errorOpts);
+                }
+
+                if (filename.search(/\.sav$/i) !== -1) {
+                    gtag("event", "load_sav_rom_1", {
+                        event_label: filename,
+                    });
+                    return modal("That's not a ROM, it's a savegame file. GBA ROM files usually end in '.gba'.", errorOpts);
+                }
+                
+                if (filename.search(/\.smc$/i) !== -1 || filename.search(/\.sfc$/i) !== -1) {
+                    gtag("event", "load_smc_rom_1", {
+                        event_label: filename,
+                    });
+                    return modal("That's a SNES ROM, this emulator runs Gameboy Advance ROMs.", errorOpts);
+                }
+                
+                if (gbMagic === "ce,ed,66,66,cc,d,0,b") {
+                    gtag("event", "load_gb_rom_1", {
+                        event_label: filename,
+                    });
+                    var colorMaybe = "";
+                    if (filename.search(/\.gbc$/i) !== -1) {
+                        colorMaybe = "Color ";
+                    }
+                    return modal("That's a Gameboy " + colorMaybe + "ROM, this emulator only runs Gameboy Advance ROMs.", errorOpts);
+                }
+                
+                if (!isPowerOf2(_romBuffer8.length)) {
+                    // Some roms are actually non-pot, so don't enforce this.
+                    gtag("event", "non_pot_rom_1", {
+                        event_label: stringToCharCodes(romCode) + " " + filename + " " + _romBuffer8.length,
+                    });
+                    // Don't return
+                }
+
+                function ok () {
+                    romBuffer8 = _romBuffer8;
+                    triggerReady("cartridge");
+                }
+
+                function waitForEmuLoad () {
+                    if (hasEmuModule()) {
+                        ok();
+                    } else {
+                        gtag("event", "emu_file_missing_at_load_rom_1", {});
+                        var interval;
+                        var modalOpts = modal("The emulator module isn't loaded yet. Give it a moment.", {
+                            title: "Waiting For Emulator Module",
+                            leftButtonText: "Back",
+                            leftButtonFn: function () {
+                                clearInterval(interval);
+                            },
+                        });
+                        function progress () {
+                            if (window.emuScriptProgress === -1) {
+                                modalOpts.hideModal();
+                                return modal("There was an error while loading the emulator module. You'll need to refresh the page.", {
+                                    title: "Error",
+                                    leftButtonText: "Ok",
+                                    leftButtonFn: function () {
+                                        clearInterval(interval);
+                                    },
+                                });
+                            } else {
+                                modalOpts.setProgress(window.emuScriptProgress);
+                            }
+                        }
+                        
+                        progress();
+                        interval = setInterval(function () {
+                            progress();
+                            if (window.emuScriptProgress >= 100) {
+                                clearInterval(interval);
+                                modalOpts.hideModal();
+                                ok();
+                            }
+                        }, 100);
+                    }
+                }
+
+                if (romCode.search(/^[A-Z0-9]{4}$/)) {
+                    gtag("event", "invalid_rom_code_1", {
+                        event_label: stringToCharCodes(romCode) + " " + filename,
+                    });
+                    return modal("That file doesn't look like a GBA ROM. (Couldn't find a rom code in the file.)", {
+                        title: "Error",
+                        rightButtonText: "Run it anyway",
+                        rightButtonFn: waitForEmuLoad,
+                    });
+                } else {
+                    waitForEmuLoad();
+                }
+            };
+
+            window.loadRomFromFile = function (e) {
                 var binaryFile = e.currentTarget.files[0];
+                var filename = binaryFile.name;
+                e.currentTarget.form.reset();
                 if (!binaryFile) {
                     return;
                 }
 
-                // Clear the file select input
-                e.currentTarget.form.reset();
+                var modalOpts = modal(filename, {
+                    title: "Loading File",
+                    leftButtonFn: null,
+                });
 
                 var fr = new FileReader();
                 fr.readAsArrayBuffer(binaryFile);
                 fr.onload = function () {
+                    modalOpts.hideModal();
                     var _romBuffer8 = new Uint8Array(fr.result);
-
-                    if (_romBuffer8.length < 512) {
-                        gtag("event", "load_tiny_rom_1", {
-                            event_label: binaryFile.name,
-                        });
-                        return modal("That file isn't a GBA ROM. (It's too small to be a ROM.)", errorOpts);
-                    }
-
-                    // Check if it's a real rom
-                    var romCode = String.fromCharCode(
-                        _romBuffer8[0xAC], _romBuffer8[0xAD], _romBuffer8[0xAE], _romBuffer8[0xAF]
-                    );
-                    var gbMagic = [
-                        _romBuffer8[0x0104], _romBuffer8[0x0105], _romBuffer8[0x0106], _romBuffer8[0x0107],
-                        _romBuffer8[0x0108], _romBuffer8[0x0109], _romBuffer8[0x010A], _romBuffer8[0x010B],
-                    ].map(function (v) {
-                        return v.toString(16);
-                    }).join();
-                    
-                    if (binaryFile.name.search(/\.zip$/i) !== -1) {
-                        gtag("event", "load_zip_rom_1", {
-                            event_label: binaryFile.name,
-                        });
-                        return modal("You need to extract the rom file from the zip.", errorOpts);
-                    }
-                    
-                    if (String.fromCharCode(_romBuffer8[0], _romBuffer8[1]) === "PK") {
-                        gtag("event", "load_zip_rom_1", {
-                            event_label: binaryFile.name + " (non-dot-zip-file)",
-                        });
-                        return modal("You need to extract the rom file.", errorOpts);
-                    }
-
-                    if (binaryFile.name.search(/\.sav$/i) !== -1) {
-                        gtag("event", "load_sav_rom_1", {
-                            event_label: binaryFile.name,
-                        });
-                        return modal("That's not a ROM, it's a savegame file. GBA ROM files usually end in '.gba'.", errorOpts);
-                    }
-                    
-                    if (binaryFile.name.search(/\.smc$/i) !== -1 || binaryFile.name.search(/\.sfc$/i) !== -1) {
-                        gtag("event", "load_smc_rom_1", {
-                            event_label: binaryFile.name,
-                        });
-                        return modal("That's a SNES ROM, this emulator runs Gameboy Advance ROMs.", errorOpts);
-                    }
-                    
-                    if (gbMagic === "ce,ed,66,66,cc,d,0,b") {
-                        gtag("event", "load_gb_rom_1", {
-                            event_label: binaryFile.name,
-                        });
-                        var colorMaybe = "";
-                        if (binaryFile.name.search(/\.gbc$/i) !== -1) {
-                            colorMaybe = "Color ";
-                        }
-                        return modal("That's a Gameboy " + colorMaybe + "ROM, this emulator only runs Gameboy Advance ROMs.", errorOpts);
-                    }
-                    
-                    if (!isPowerOf2(_romBuffer8.length)) {
-                        // Some roms are actually non-pot, so don't enforce this.
-                        gtag("event", "non_pot_rom_1", {
-                            event_label: stringToCharCodes(romCode) + " " + binaryFile.name + " " + _romBuffer8.length,
-                        });
-                        // Don't return
-                    }
-
-                    function ok () {
-                        romBuffer8 = _romBuffer8;
-                        triggerReady("cartridge");
-                    }
-
-                    function waitForEmuLoad () {
-                        if (hasEmuModule()) {
-                            ok();
-                        } else {
-                            gtag("event", "emu_file_missing_at_load_rom_1", {});
-                            var interval;
-                            var modalOpts = modal("The emulator module isn't loaded yet. Give it a moment.", {
-                                title: "Waiting For Emulator Module",
-                                leftButtonText: "Back",
-                                leftButtonFn: function () {
-                                    clearInterval(interval);
-                                },
-                            });
-                            function progress () {
-                                if (window.emuScriptProgress === -1) {
-                                    modalOpts.hideModal();
-                                    return modal("There was an error while loading the emulator module. You'll need to refresh the page.", {
-                                        title: "Error",
-                                        leftButtonText: "Ok",
-                                        leftButtonFn: function () {
-                                            clearInterval(interval);
-                                        },
-                                    });
-                                } else {
-                                    modalOpts.setProgress(window.emuScriptProgress);
-                                }
-                            }
-                            
-                            progress();
-                            interval = setInterval(function () {
-                                progress();
-                                if (window.emuScriptProgress >= 100) {
-                                    clearInterval(interval);
-                                    modalOpts.hideModal();
-                                    ok();
-                                }
-                            }, 100);
-                        }
-                    }
-
-                    
-                    if (romCode.search(/^[A-Z0-9]{4}$/)) {
-                        gtag("event", "invalid_rom_code_1", {
-                            event_label: stringToCharCodes(romCode) + " " + binaryFile.name,
-                        });
-                        return modal("That file doesn't look like a GBA ROM. (Couldn't find a rom code in the file.)", {
-                            title: "Error",
-                            rightButtonText: "Run it anyway",
-                            rightButtonFn: waitForEmuLoad,
-                        });
-                    } else {
-                        waitForEmuLoad();
-                    }
-
+                    loadRomFromBuffer(_romBuffer8, binaryFile.name);
                 };
+            };
+
+            window.loadRomFromNetwork = function (url) {
+                var xhr = new XMLHttpRequest();
                 
+                let loadingModalSettings = {
+                    title: "Loading",
+                    leftButtonText: "Cancel",
+                    leftButtonFn: function () {
+                        xhr.abort();
+                    }
+                };
+                if (qs.exclusive) {
+                    loadingModalSettings.leftButtonFn = null;
+                }
+                var modalOpts = modal("Loading " + url, loadingModalSettings);
+                
+                modalOpts.setProgress(0);
+                
+                xhr.onload = function (e) {
+                    modalOpts.hideModal();
+                    window.loadRomFromBuffer(new Uint8Array(xhr.response), url);
+                };
+                xhr.onprogress = function (e) {
+                    modalOpts.setProgress((e.loaded / e.total) * 100);
+                };
+                xhr.onerror = function (e) {
+                    modalOpts.hideModal();
+                    let errorModalSettings = {
+                        title: "Error",
+                        leftButtonText: "Ok",
+                    };
+                    if (qs.exclusive) {
+                        errorModalSettings.leftButtonFn = function () {
+                            location.reload();
+                        }
+                        errorModalSettings.leftButtonText = "Reload Page";
+                    }
+                    modal("There was an error loading the ROM.", errorModalSettings);
+                };
+                xhr.open("GET", url);
+                xhr.responseType = "arraybuffer";
+                xhr.send();
             };
             
-            
+
+
             window.gbaninja = {
                 onRuntimeInitialized: function() {
                     triggerReady("emu");
@@ -477,11 +544,15 @@
                 triggerReady("document");
             });
             
+
             onReady("document", function () {
                 if (window.init) {
                     window.init();
                 } else {
                     document.querySelector(".pixels").innerHTML = "<p style='margin: 20px;'>A required file failed to load.</p>";
+                }
+                if (qs.autorun) {
+                    loadRomFromNetwork(qs.autorun);
                 }
             });
             onReady("emu", function () {
@@ -835,7 +906,7 @@
                 width: 200px;
             }
         </style>
-        <div class="pixels"></div>
+        <div class="pixels" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;"></div>
         <div style="display: none;" class="ui">
             <div class="ui-border-1">
                 <div class="ui-border-2">
@@ -900,7 +971,6 @@
             <span class="perf-left">On-Time Audio Events</span><span class="perf-right perf-audio-deadlines">-</span><br/>
             <span class="perf-left">Timesteps/Second</span><span class="perf-right perf-timesteps">-</span><br/>
             <span class="perf-left">Audio Lag</span><span class="perf-right perf-audio-lag">-</span><br/>
-            <span class="perf-left">Timing Adjustments</span><span class="perf-right perf-timing">-</span><br/>
         </div>
     </body>
 </html>

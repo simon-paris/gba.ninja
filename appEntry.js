@@ -31,7 +31,10 @@ window.init = function () {
     window.vbaUI = new VBAUI(document.querySelector(".ui"));
 
     document.querySelector(".pixels").style.display = "none";
-    document.querySelector(".ui").style.display = "block";
+
+    if (!qs.exclusive) {
+        document.querySelector(".ui").style.display = "block";
+    }
 
     vbaUI.reset();
 
