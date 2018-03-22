@@ -154,17 +154,13 @@ window.perfTimer = null;
 window.lastPerfTime = performance.now();
 window.doPerfCalc = function () {
     
-    if (!hasEmuModule()) {
-        return;
-    }
-    
     clearTimeout(window.perfTimer);
 
     var currentTime = window.performance.now();
     var deltaTime = currentTime - lastPerfTime;
     window.lastPerfTime = currentTime;
 
-    if (window.vbaInput.isKeyDown(vbaInput.bindings.PERF_STATS)) {
+    if (hasEmuModule() && window.vbaInput.isKeyDown(vbaInput.bindings.PERF_STATS)) {
 
         document.querySelector(".perf").style.display = "block";
 

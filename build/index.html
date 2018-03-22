@@ -127,6 +127,9 @@
             if (location.search) {
                 location.search.substr(1).split(/&/g).map(function (term) {
                     var parts = term.split(/=/g);
+                    if (parts.length === 1) {
+                        parts.push("1");
+                    }
                     qs[parts[0]] = parts[1];
                 });
             }
@@ -452,7 +455,7 @@
                     }
                 }
 
-                if (romCode.search(/^[A-Z0-9]{4}$/)) {
+                if (romCode.search(/^[A-Z0-9]{4}$/) && !qs.ignoreInvalidRomCode) {
                     gtag("event", "invalid_rom_code_1", {
                         event_label: stringToCharCodes(romCode) + " " + filename,
                     });
