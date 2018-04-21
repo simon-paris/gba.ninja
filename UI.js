@@ -10,17 +10,25 @@
         
         this.el.addEventListener("keydown", this.onKeyDown.bind(this));
         
+        this.paused = false;
     }
     VBAUI.prototype = Object.create(Object.prototype);
     VBAUI.prototype.constructor = VBAUI;
     
+
+    VBAUI.prototype.setPausedState = function (paused) {
+        this.paused = paused;
+        this.el.querySelector(".load-rom-section").style.display = paused ? "none" : "";
+        this.el.querySelector(".paused-section").style.display = paused ? "" : "none";
+    };
+
     
     VBAUI.prototype.reset = function () {
         this.el.innerHTML = this.initialHTML;
         this.currentlyBinding = false;
         
         var i;
-        var savesEl = window.document.querySelector(".saves-list");
+        var savesEl = this.el.querySelector(".saves-list");
         var savesHTML = "<table>";
         var saves = window.vbaSaves.listSaves();
         for (i = 0; i < saves.length; i++) {
@@ -39,23 +47,34 @@
         savesHTML += "</table>";
         savesEl.innerHTML = savesHTML;
         
-        var keyboardBindingsEl = window.document.querySelector(".keyboard-bindings");
+        var keyboardBindingsEl = this.el.querySelector(".keyboard-bindings");
         var keyboardBindingsHTML = "<table>";
         var keyboardBindings = window.vbaInput.listBindings();
+
+        function codesToName (codes) {
+            return codes.join(", ")
+                .replace(/Key/im, "Key ").replace(/Arrow/im, "Arrow ")
+                .replace(/Digit/im, "Digit ").replace(/Numpad/im, "Numpad ")
+                .replace(/Left/im, " Left").replace(/Right/im, " Right");
+        }
+
         for (i = 0; i < keyboardBindings.length; i++) {
+
             keyboardBindingsHTML += "<tr>" +
                 "<td>" + keyboardBindings[i].friendlyName + "</td>" +
-                "<td>" + keyboardBindings[i].codes.join(", ")
-                    .replace(/Key/im, "Key ").replace(/Arrow/im, "Arrow ")
-                    .replace(/Digit/im, "Digit ").replace(/Numpad/im, "Numpad ")
-                    .replace(/Left/im, " Left").replace(/Right/im, " Right")
-                     + "</td>" +
+                "<td>" + codesToName(keyboardBindings[i].codes) + "</td>" +
                 "<td><a class='rebind-key-button' onclick='vbaUI.startRebinding(this, \"" + keyboardBindings[i].name + "\")' href='javascript:void 0;'>Rebind</a></td>" +
             "</tr>";
+
+            if (keyboardBindings[i].name === "PAUSE") {
+                this.el.querySelector(".unpause-key-prompt").innerText = codesToName(keyboardBindings[i].codes);
+            }
+
         }
         keyboardBindingsHTML += "</table>";
         keyboardBindingsEl.innerHTML = keyboardBindingsHTML;
         
+        this.setPausedState(this.paused);
     };
     
     VBAUI.prototype.export = function () {

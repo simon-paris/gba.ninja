@@ -6,6 +6,7 @@ var VBAInput = require("./Input");
 var VBAUI = require("./UI");
 
 var isRunning = false;
+var isPaused = false;
 
 
 
@@ -71,6 +72,7 @@ window.start = function () {
     window.focusCheck();
     window.doTimestep(window.frameNum + 1);
     
+    
 
 };
 
@@ -122,7 +124,9 @@ window.doTimestep = function (frameNum, mustRender) {
         if (vbaSound.spareSamplesAtLastEvent < 700) {
             cyclesToDo += Math.floor(Math.min(cyclesToDo * 0.03, GBA_CYCLES_PER_SECOND / 10000));
         }
-        VBAInterface.VBA_do_cycles(cyclesToDo);
+        if (!isPaused) {
+            VBAInterface.VBA_do_cycles(cyclesToDo);
+        }
 
         vbaPerf.deltaTimesThisSecond.push(deltaTime);
         vbaPerf.cyclesThisSecond.push(cyclesToDo);
@@ -141,6 +145,7 @@ window.doTimestep = function (frameNum, mustRender) {
         document.querySelector(".pixels").style.display = "none";
         document.querySelector(".ui").style.display = "block";
     }
+
 };
 
 window.hasRequestedFrameButNotRendered = false;
@@ -212,6 +217,12 @@ window.doPerfCalc = function () {
     vbaPerf.audioDeadlineResultsThisSecond.length = 0;
 
     window.perfTimer = setTimeout(window.doPerfCalc, 1000);
+};
+
+window.togglePause = function () {
+    isPaused = !isPaused;
+    document.querySelector(".ui").style.display = isPaused ? "block" : "none";
+    window.vbaUI.setPausedState(isPaused);
 };
 
 window.scheduleStop = function () {

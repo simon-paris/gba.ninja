@@ -914,7 +914,7 @@
             <div class="ui-border-1">
                 <div class="ui-border-2">
                     <img src="./logo.png" style="height: 50px; padding-bottom: 6px; padding-right: 90px;"/>
-                    <section>
+                    <section class="load-rom-section">
                         <h2>Load a Gameboy Advance ROM</h2>
                         <div class="gap"></div>
                         <label class="btn" for="load-rom-from-file">From File</label>
@@ -923,13 +923,19 @@
                             <input id="load-rom-from-file" type="file" onchange="window.loadRomFromFile(event);"/>
                         </form>
                     </section>
+                    <section class="paused-section" style="display: none;">
+                        <h2>Paused</h2>
+                        <p style="padding-top: 8px;">
+                            Press <span class="unpause-key-prompt"></span> to resume.
+                        </p>
+                    </section>
                     <!--
                         <div>
                             <label class="btn" for="load-rom-from-url" onclick="window.loadCartridgeFromURL(event);window.onReady('cartridge', function () {start()});">From URL</label>
                             <input id="load-rom-from-url" type="text"/>
                         </div>
                     -->
-                    <section>
+                    <section class="savegames-section">
                         <h2>Saves</h2>
                         <div class="gap"></div>
                         <div class="saves-list"></div>
@@ -966,6 +972,9 @@
                     <div class="btn modal-button-right">Right</div>
                 </div>
             </div>
+        </div>
+        <div class="toast">
+            
         </div>
         <div class="perf" style="display: none;">
             <span class="perf-left">Game</span><span class="perf-right perf-game">-</span><br/>

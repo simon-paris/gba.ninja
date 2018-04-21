@@ -58,6 +58,11 @@
         codes: ["Backquote"],
         keyCodes: [192],
     };
+    defaultBindings.PAUSE = {
+        friendlyName: "Pause",
+        codes: ["Escape"],
+        keyCodes: [27],
+    };
     
 
     function VBAInput() {
@@ -68,6 +73,7 @@
         window.addEventListener("keydown", function (e) {
 
             var wasPerfKeyDownBefore = this.isKeyDown(this.bindings.PERF_STATS);
+            var wasPauseKeyDownBefore = this.isKeyDown(this.bindings.PAUSE);
 
             this.downCodes[e.code] = 1;
             this.downKeyCodes[e.keyCode] = 1;
@@ -75,6 +81,10 @@
             var isPerfKeyDownNow = this.isKeyDown(this.bindings.PERF_STATS);
             if (!wasPerfKeyDownBefore && isPerfKeyDownNow) {
                 window.doPerfCalc();
+            }
+            var isPauseKeyDownNow = this.isKeyDown(this.bindings.PAUSE);
+            if (!wasPauseKeyDownBefore && isPauseKeyDownNow) {
+                window.togglePause();
             }
 
             return false;
@@ -156,6 +166,7 @@
                 return true;
             }
         }
+        return false;
     };
     
     
