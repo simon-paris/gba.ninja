@@ -220,6 +220,9 @@ window.doPerfCalc = function () {
 };
 
 window.togglePause = function () {
+    if (!isRunning) {
+        return;
+    }
     isPaused = !isPaused;
     document.querySelector(".ui").style.display = isPaused ? "block" : "none";
     window.vbaUI.setPausedState(isPaused);
