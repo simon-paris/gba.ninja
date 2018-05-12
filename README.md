@@ -11,7 +11,7 @@ Install nodejs and emscripten. Ensure that `node` and `emcc` are on your path. `
 
 Run `node build --opt` (the `--opt` is production mode) then `webpack`. Open `build/index.html`.
 
-(Note that emscripten is bundled with and requires a version of node that is older than the minimum required version to run webpack. Use and up-to-date version of node to run webpack.)
+(Note that emscripten is bundled with and requires a version of node that is older than the minimum required version to run webpack. Use an up-to-date version of node to run webpack.)
 
 ## TODOs
  * Fix frame drop problems
