@@ -7,21 +7,22 @@ Eventually, it should work on all browsers that support WebGL. Currently, it als
 
 # Build
 
-Install nodejs and emscripten. Ensure that `node` and `emcc` are on your path. `npm install`.
+1. Install nodejs and emscripten (from http://kripken.github.io/emscripten-site/docs/getting_started/downloads.html).
+2. `npm install`.
+3. Run `node build --opt` (the `--opt` is production mode) with the emscripten sdk enabled.
+4. Run `webpack` with the emscripten sdk NOT enabled.
+5. Open `build/index.html`.
 
-Run `node build --opt` (the `--opt` is production mode) then `webpack`. Open `build/index.html`.
-
-(Note that emscripten is bundled with and requires a version of node that is older than the minimum required version to run webpack. Use an up-to-date version of node to run webpack.)
+**(Note that emscripten is bundled with and requires a version of node that is older than the minimum required version to run webpack. The easiest way to deal with this is to have one terminal for emscripten, and another for webpack)**
 
 ## TODOs
  * Fix frame drop problems
  * Fix bug where audio stops if headphones are unplugged
  * Google Drive sync for save games
  * Touch controls
- * Loading screen
  * Enable frameskip on slow devices
  * Ability to load BIOS
- * Load ROM from URL
+ * UI for loading ROMs from URLs
  * Support for roms in zip files
  * Cache roms in HTML5 FS
  * Mute button (should disable audio emulation)
