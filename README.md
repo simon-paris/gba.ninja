@@ -30,7 +30,7 @@ Eventually, it should work on all browsers that support WebGL. Currently, it als
 
 ## VBA-M Licence
 VisualBoyAdvance - Nintendo Gameboy/GameboyAdvance (TM) emulator.
-Copyright (C) 1999-2017 VBA & VBA-M Contributors 
+Copyright (C) 1999-2018 VBA & VBA-M Contributors 
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
