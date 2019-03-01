@@ -547,6 +547,11 @@
                 triggerReady("document");
             });
             
+            document.addEventListener("mousedown", function () {
+                if(window.vbaSound.audioCtx.state === "suspended"){
+                    window.vbaSound.audioCtx.resume();
+                }
+            });
 
             onReady("document", function () {
                 if (window.init) {
