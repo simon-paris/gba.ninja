@@ -68,6 +68,7 @@
         opt ? "" : "-s ASSERTIONS=2",
         "-s NO_FILESYSTEM=1",
         "-s NO_EXIT_RUNTIME=1",
+	"-s EXTRA_EXPORTED_RUNTIME_METHODS=['ccall']",
         "-s TOTAL_MEMORY=" + (80 * MB),
     ].filter(function (v) {return v;}).join(" ");
     
