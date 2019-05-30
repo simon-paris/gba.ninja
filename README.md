@@ -7,13 +7,16 @@ Eventually, it should work on all browsers that support WebGL. Currently, it als
 
 # Build
 
-1. Install nodejs and emscripten (from http://kripken.github.io/emscripten-site/docs/getting_started/downloads.html).
-2. `npm install`.
-3. Run `node build --opt` (the `--opt` is production mode) with the emscripten sdk enabled.
-4. Run `webpack` with the emscripten sdk NOT enabled.
+1. `npm install`.
+2. **in a separate terminal window:**
+    * download Emscripten from https://github.com/emscripten-core/emsdk. (Download as zip)
+    * in emscripten, `emsdk install latest && emsdk activate`
+    * (confirmed working in emsdk commit 0490c5f with sdk-1.37.1-64bit installed)
+    * Run `node build --opt` (the `--opt` is production mode). This takes a while.
+4. Run `npm run webpack`. 
 5. Open `build/index.html`.
 
-**(Note that emscripten is bundled with and requires a version of node that is older than the minimum required version to run webpack. The easiest way to deal with this is to have one terminal for emscripten, and another for webpack)**
+**(the separate terminal window is because emscripten comes bundled with a really old version of node)**
 
 ## TODOs
  * Fix frame drop problems

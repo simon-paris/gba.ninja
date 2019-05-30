@@ -1,3 +1,3 @@
 
-window.gbaninja = require("./emu.js")(window.gbaninja);
+window.gbaninja = require("./build/emu.js")(window.gbaninja);
 

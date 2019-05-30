@@ -68,19 +68,20 @@
         opt ? "" : "-s ASSERTIONS=2",
         "-s NO_FILESYSTEM=1",
         "-s NO_EXIT_RUNTIME=1",
+        "-s \"EXTRA_EXPORTED_RUNTIME_METHODS=['ccall']\"",
         "-s TOTAL_MEMORY=" + (80 * MB),
     ].filter(function (v) {return v;}).join(" ");
     
     function fix (file) {
         let str = require("fs").readFileSync(file).toString()
-                    .replace(/require\("fs"\)/g, "(function () { throw new Error('cant use fs in browser')}())");
+                    .replace(/require\('fs'\)/g, "(function () { throw new Error('cant use fs in browser')}())");
         require("fs").writeFileSync(file, str);
     }
 
-    require("child_process").execSync(`emcc ${options} ${files.join(" ")} -o ./emu.js`);
-    fix("./emu.js");
-    require("child_process").execSync(`emcc ${options} ${files.join(" ")} -s WASM=1 -o ./emu-wasm.js`);
-    fix("./emu-wasm.js");
+    let command = `emcc ${options} ${files.join(" ")} -o ./build/emu.js`;
+    console.log(command);
+    require("child_process").execSync(command);
+    fix("./build/emu.js");
     
 }());
 
