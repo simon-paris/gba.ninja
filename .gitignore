@@ -11,6 +11,7 @@ node_modules
 emu.js
 emu-wasm.js
 emu-wasm.wasm
+emu.wasm
 build/app.js
 build/emu.js
 build/sw.js
