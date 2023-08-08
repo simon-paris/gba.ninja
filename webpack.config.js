@@ -3,6 +3,8 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = {
+    mode: 'development',
+    devtool: 'eval',
     entry: {
         app: "./appEntry.js",
         emu: "./emuEntry.js",
@@ -14,7 +16,16 @@ module.exports = {
     },
     module: {
         rules: [
-            { test: /\.css$/, loader: "style!css" },
+            { 
+                test: /\.css$/i, 
+                use: ["style-loader", "css-loader"]
+            },
         ],
     },
+    resolve: {
+        fallback: {
+            "fs": false,
+            "path": false
+        },
+    }
 };
